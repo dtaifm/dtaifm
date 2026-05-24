@@ -14,6 +14,10 @@ dtaifm is open-source middleware for systems where AI generates candidate logic 
 
 All file formats are explicitly versioned (`schema_version`) and have published JSON Schemas, so producers and consumers can evolve independently.
 
+![dtaifm demo — Qwen 3.6 via Lemonade on the network_automation domain](docs/assets/dtaifm-demo.png)
+
+*A real local run: Qwen 3.6 via Lemonade proposes network-automation rules; dtaifm approves only the rule that passes deterministic validation, rejects the unsafe proposals with named violations (`changes_in_maintenance_mode_only`), writes an audit bundle, and verifies replay end-to-end.*
+
 ## 60-second demo
 
 ```bash
