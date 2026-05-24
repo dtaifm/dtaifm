@@ -2,6 +2,7 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
 
 from dtaifm.cli import main
 
@@ -230,7 +231,9 @@ def test_prompt_command_emits_prompt_text(capsys):
     assert "rule_must_explain" in out
     # The framework principle is stated
     assert "artifact" in out.lower()
-    assert "submit_ruleset" in out
+    # The prompt demands the literal JSON envelope (no tool-specific wording).
+    assert "schema_version" in out
+    assert "rules" in out
 
 
 def test_prompt_command_includes_domain(capsys):
@@ -348,5 +351,97 @@ def test_propose_without_explicit_options_passes_none(tmp_path, capsys):
         main(["propose", CONSTRAINTS, "--teacher", "__record2__", "--out", str(out)])
         assert captured["base_url"] is None
         assert captured["model"] is None
+        assert captured["timeout"] is None
     finally:
         _TEACHERS.pop("__record2__", None)
+
+
+# ----------------------------------------------------------------------
+# propose: --teacher-timeout threading (v0.1.1)
+# ----------------------------------------------------------------------
+
+def _register_recording_teacher(name, captured):
+    """Helper: register a teacher that records every kwarg it was constructed with."""
+    from dtaifm.core.ruleset import RuleSet
+    from dtaifm.teacher.base import Teacher
+    from dtaifm.teacher.contract import TeacherResponse
+    from dtaifm.teacher.registry import register_teacher
+
+    class _RecordingTeacher(Teacher):
+        def propose(self, request):
+            return TeacherResponse(ruleset=RuleSet(), raw_provider_output="")
+
+    def _factory(**opts):
+        captured.update(opts)
+        return _RecordingTeacher()
+
+    register_teacher(name, _factory)
+
+
+def test_propose_threads_teacher_timeout_flag(tmp_path):
+    from dtaifm.teacher.registry import _TEACHERS
+    captured: dict = {}
+    _register_recording_teacher("__timeout_propose__", captured)
+    try:
+        out = tmp_path / "p.yaml"
+        exit_code = main([
+            "propose", CONSTRAINTS,
+            "--teacher", "__timeout_propose__",
+            "--teacher-timeout", "300",
+            "--out", str(out),
+        ])
+        assert exit_code == 0
+        assert captured["timeout"] == 300.0
+    finally:
+        _TEACHERS.pop("__timeout_propose__", None)
+
+
+def test_cli_teacher_timeout_non_numeric_fails(tmp_path, capsys):
+    # argparse rejects the type=float conversion with SystemExit code 2.
+    with pytest.raises(SystemExit) as exc:
+        main([
+            "propose", CONSTRAINTS,
+            "--teacher", "mock",
+            "--teacher-timeout", "abc",
+            "--out", str(tmp_path / "p.yaml"),
+        ])
+    assert exc.value.code == 2
+
+
+def test_cli_teacher_timeout_negative_fails(tmp_path, capsys):
+    # Negative values pass argparse but fail in resolve_timeout — caught by
+    # main()'s ValueError handler with exit 2 and a clear stderr message.
+    from dtaifm.teacher.registry import _TEACHERS
+    captured: dict = {}
+    _register_recording_teacher("__timeout_propose_neg__", captured)
+    # Even though we register a recording teacher, we point at a real local
+    # adapter so resolve_timeout fires. We use ollama because its factory
+    # constructs the real adapter.
+    try:
+        exit_code = main([
+            "propose", CONSTRAINTS,
+            "--teacher", "ollama",
+            "--teacher-timeout", "-1",
+            "--out", str(tmp_path / "p.yaml"),
+        ])
+        assert exit_code == 2
+        err = capsys.readouterr().err
+        assert "positive" in err.lower()
+    finally:
+        _TEACHERS.pop("__timeout_propose_neg__", None)
+
+
+def test_cli_teacher_timeout_env_var_used_when_no_flag(tmp_path, monkeypatch):
+    monkeypatch.setenv("DTAIFM_HTTP_TIMEOUT", "240")
+    from dtaifm.teacher.registry import get_teacher
+    # The CLI passes timeout=None when no flag is given; resolve_timeout falls
+    # back to the env var. Verify end-to-end via the real ollama adapter.
+    teacher = get_teacher("ollama")
+    assert teacher.timeout == 240.0
+
+
+def test_cli_teacher_timeout_flag_beats_env_var(tmp_path, monkeypatch):
+    monkeypatch.setenv("DTAIFM_HTTP_TIMEOUT", "240")
+    from dtaifm.teacher.registry import get_teacher
+    teacher = get_teacher("ollama", timeout=900.0)
+    assert teacher.timeout == 900.0

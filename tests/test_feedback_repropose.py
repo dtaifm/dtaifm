@@ -492,6 +492,33 @@ def test_cli_repropose_threads_base_url_and_model_to_teacher_factory(tmp_path):
         _TEACHERS.pop("__record_repropose__", None)
 
 
+def test_cli_repropose_threads_teacher_timeout(tmp_path):
+    """`repropose --teacher-timeout` must thread through to the teacher factory."""
+    captured_opts: dict = {}
+
+    class _RecordingTeacher(Teacher):
+        def propose(self, request):
+            return TeacherResponse(ruleset=RuleSet(), raw_provider_output="recorded")
+
+    def _factory(**opts):
+        captured_opts.update(opts)
+        return _RecordingTeacher()
+
+    register_teacher("__repropose_timeout__", _factory)
+    try:
+        out = tmp_path / "revised.yaml"
+        exit_code = main([
+            "repropose", SH_CONSTRAINTS, SH_RULES,
+            "--teacher", "__repropose_timeout__",
+            "--teacher-timeout", "720",
+            "--out", str(out),
+        ])
+        assert exit_code == 0
+        assert captured_opts["timeout"] == 720.0
+    finally:
+        _TEACHERS.pop("__repropose_timeout__", None)
+
+
 # ----------------------------------------------------------------------
 # Full loop: review -> feedback -> repropose -> review
 # ----------------------------------------------------------------------

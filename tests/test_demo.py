@@ -232,6 +232,30 @@ def test_cli_demo_threads_teacher_options(capsys):
         _TEACHERS.pop("__demo_record__", None)
 
 
+def test_cli_demo_threads_teacher_timeout(capsys):
+    captured: dict = {}
+
+    class _Recording(Teacher):
+        def propose(self, request):
+            return TeacherResponse(ruleset=RuleSet(), raw_provider_output="recorded")
+
+    def _factory(**opts):
+        captured.update(opts)
+        return _Recording()
+
+    register_teacher("__demo_timeout__", _factory)
+    try:
+        exit_code = main([
+            "demo", "smart_home",
+            "--teacher", "__demo_timeout__",
+            "--teacher-timeout", "450",
+        ])
+        assert exit_code == 0
+        assert captured["timeout"] == 450.0
+    finally:
+        _TEACHERS.pop("__demo_timeout__", None)
+
+
 # ----------------------------------------------------------------------
 # Trust-boundary assertions on the walkthrough text
 # ----------------------------------------------------------------------

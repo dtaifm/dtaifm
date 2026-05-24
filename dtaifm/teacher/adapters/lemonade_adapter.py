@@ -4,6 +4,11 @@ Talks to a local Lemonade server via ``POST /v1/chat/completions``. Default
 endpoint is ``http://localhost:13305``; override via the ``--teacher-base-url``
 CLI flag or the ``DTAIFM_LEMONADE_BASE_URL`` environment variable.
 
+HTTP timeout defaults to 60s. Override via ``--teacher-timeout <seconds>`` on
+the CLI or the ``DTAIFM_HTTP_TIMEOUT`` environment variable. Useful for
+thinking models whose reasoning phase plus structured-output generation
+exceeds the default budget.
+
 Returns a portable RuleSet by routing the model's text response through the
 shared strict parser. Local models are still untrusted teachers.
 """
@@ -13,7 +18,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from dtaifm.teacher.adapters._http import HttpJsonClient
+from dtaifm.teacher.adapters._http import HttpJsonClient, resolve_timeout
 from dtaifm.teacher.base import Teacher
 from dtaifm.teacher.contract import TeacherRequest, TeacherResponse
 from dtaifm.teacher.parser import ProviderResponseError, parse_provider_text
@@ -24,6 +29,7 @@ class LemonadeTeacher(Teacher):
 
     DEFAULT_BASE_URL = "http://localhost:13305"
     DEFAULT_MODEL = "Qwen3-0.6B-GGUF"
+    DEFAULT_TIMEOUT = 60.0
     BASE_URL_ENV = "DTAIFM_LEMONADE_BASE_URL"
     MODEL_ENV = "DTAIFM_LEMONADE_MODEL"
     CHAT_PATH = "/v1/chat/completions"
@@ -33,11 +39,13 @@ class LemonadeTeacher(Teacher):
         model: str | None = None,
         base_url: str | None = None,
         client: Any | None = None,
-        timeout: float = 60.0,
+        timeout: float | None = None,
     ) -> None:
-        self._client = client if client is not None else HttpJsonClient(timeout=timeout)
+        resolved_timeout = resolve_timeout(timeout, default=self.DEFAULT_TIMEOUT)
+        self._client = client if client is not None else HttpJsonClient(timeout=resolved_timeout)
         self._base_url = _resolve_base_url(base_url, self.BASE_URL_ENV, self.DEFAULT_BASE_URL)
         self._model = model or os.environ.get(self.MODEL_ENV) or self.DEFAULT_MODEL
+        self._timeout = resolved_timeout
 
     @property
     def base_url(self) -> str:
@@ -46,6 +54,10 @@ class LemonadeTeacher(Teacher):
     @property
     def model(self) -> str:
         return self._model
+
+    @property
+    def timeout(self) -> float:
+        return self._timeout
 
     def propose(self, request: TeacherRequest) -> TeacherResponse:
         prompt = self.render_prompt(request)

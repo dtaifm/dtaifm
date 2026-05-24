@@ -60,8 +60,19 @@ Known condition type parameters:
 - device_state: parameters `device` (string), `state` (string). Passes when
                 state[device] == state.
 
-Return the RuleSet via the submit_ruleset tool. Do NOT include narration outside
-the tool call.
+Return your output as a SINGLE JSON object with this exact top-level shape:
+
+{{
+  "schema_version": "{schema_version}",
+  "rules": [
+    {{ ...your first rule... }},
+    {{ ...your second rule... }}
+  ]
+}}
+
+The top-level keys MUST be exactly "schema_version" and "rules". Do NOT wrap
+the object in any other key (no "data", no "result", no "output", no tool name).
+Do NOT include narration outside the JSON object.
 """
 
 
@@ -150,7 +161,7 @@ def _format_revision_section(
         "violation reasons for each rejected rule. The violation reasons are produced",
         "by the deterministic layer and are authoritative — they are not opinions.",
         "",
-        "You must return a COMPLETE revised RuleSet (via submit_ruleset) that:",
+        "You must return a COMPLETE revised RuleSet that:",
         "  1. Keeps every approved rule intact.",
         "  2. Repairs or removes each rejected rule so that all listed violations are resolved.",
         "  3. Does NOT introduce new constraint violations.",

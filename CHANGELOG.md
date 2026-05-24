@@ -3,6 +3,25 @@
 All notable changes to this project are tracked here. The project follows
 semantic versioning once it leaves alpha.
 
+## [0.1.1] — 2026-05-24
+
+Post-launch dogfooding fixes discovered while running `dtaifm demo` against a real local Lemonade server hosting a thinking-model (Qwen 3.6). No code on the trust boundary changes; both fixes are additive.
+
+### Configurable local-teacher HTTP timeout
+
+- New `--teacher-timeout <seconds>` CLI flag on `propose`, `repropose`, and `demo`.
+- New `DTAIFM_HTTP_TIMEOUT` environment variable, honoured by the `ollama` and `lemonade` adapters.
+- Precedence: CLI flag > env var > adapter default (60s).
+- Invalid values (non-numeric, zero, negative) surface as clear errors with exit code 2; argparse rejects non-numeric input directly, and `resolve_timeout` rejects zero/negative values via `ValueError`.
+- Resolves a hang when using thinking models (Qwen 3.x, Gemma 3, etc.) whose reasoning phase plus structured-output generation exceeds the previous hardcoded 60s.
+
+### Provider-neutral prompt wording for non-tool local models
+
+- Removed the tool-specific `submit_ruleset` reference from the shared prompt template (both the initial-proposal section and the revision-requested section).
+- The template now demands a literal `{"schema_version": "0.1", "rules": [...]}` envelope and explicitly warns the model not to wrap output in any other key (`data`, `result`, `output`, tool name).
+- Fixes a real failure mode observed with Qwen 3.6 on Lemonade: the model emitted `{"submit_ruleset": {"rules": [...]}}` because the prompt's "via the submit_ruleset tool" wording was interpreted literally as a wrapper key.
+- The Anthropic adapter continues to use its `submit_ruleset` tool internally via the SDK's tool-use mechanism; no behaviour change for that adapter — the literal tool name now lives only in the adapter, not in the shared prompt body.
+
 ## [0.1.0] — 2026-05-24
 
 ### Core architecture

@@ -8,9 +8,54 @@ tests can satisfy with a hand-built fake — no real network calls run in CI.
 from __future__ import annotations
 
 import json
+import os
 import urllib.error
 import urllib.request
 from typing import Any
+
+
+HTTP_TIMEOUT_ENV = "DTAIFM_HTTP_TIMEOUT"
+
+
+def resolve_timeout(
+    provided: float | None,
+    *,
+    default: float = 60.0,
+    env_var: str = HTTP_TIMEOUT_ENV,
+) -> float:
+    """Resolve an HTTP timeout following CLI > env > default precedence.
+
+    - ``provided`` is the explicit caller value (typically wired from a CLI flag).
+      When not None, it wins outright.
+    - ``env_var`` (default ``DTAIFM_HTTP_TIMEOUT``) is consulted next.
+    - ``default`` is used when neither is set.
+
+    Raises ``ValueError`` if the caller-supplied value is non-positive or if the
+    env var is present but cannot be parsed as a positive float. Both error
+    paths surface as exit-2 errors via the CLI's central exception handler.
+    """
+    if provided is not None:
+        if provided <= 0:
+            raise ValueError(
+                f"timeout must be a positive number of seconds, got {provided}"
+            )
+        return float(provided)
+
+    env_val = os.environ.get(env_var)
+    if env_val:
+        try:
+            value = float(env_val)
+        except ValueError as exc:
+            raise ValueError(
+                f"invalid {env_var}={env_val!r}: must be a positive number of seconds"
+            ) from exc
+        if value <= 0:
+            raise ValueError(
+                f"invalid {env_var}={env_val!r}: must be positive"
+            )
+        return value
+
+    return default
 
 
 class HttpJsonClient:

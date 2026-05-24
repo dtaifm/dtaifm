@@ -4,6 +4,11 @@ Talks to a local Ollama server via ``POST /api/chat``. Default endpoint is
 ``http://localhost:11434``; override via the ``--teacher-base-url`` CLI flag
 or the ``DTAIFM_OLLAMA_BASE_URL`` environment variable.
 
+HTTP timeout defaults to 60s. Override via ``--teacher-timeout <seconds>`` on
+the CLI or the ``DTAIFM_HTTP_TIMEOUT`` environment variable. Useful for
+thinking models whose reasoning phase plus structured-output generation
+exceeds the default budget.
+
 Returns a portable RuleSet by routing the model's text response through the
 shared strict parser (parse_provider_text). Provider narration outside the
 JSON block is tolerated; malformed output fails clearly.
@@ -16,7 +21,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from dtaifm.teacher.adapters._http import HttpJsonClient
+from dtaifm.teacher.adapters._http import HttpJsonClient, resolve_timeout
 from dtaifm.teacher.base import Teacher
 from dtaifm.teacher.contract import TeacherRequest, TeacherResponse
 from dtaifm.teacher.parser import ProviderResponseError, parse_provider_text
@@ -27,6 +32,7 @@ class OllamaTeacher(Teacher):
 
     DEFAULT_BASE_URL = "http://localhost:11434"
     DEFAULT_MODEL = "llama3.2"
+    DEFAULT_TIMEOUT = 60.0
     BASE_URL_ENV = "DTAIFM_OLLAMA_BASE_URL"
     MODEL_ENV = "DTAIFM_OLLAMA_MODEL"
     CHAT_PATH = "/api/chat"
@@ -36,11 +42,13 @@ class OllamaTeacher(Teacher):
         model: str | None = None,
         base_url: str | None = None,
         client: Any | None = None,
-        timeout: float = 60.0,
+        timeout: float | None = None,
     ) -> None:
-        self._client = client if client is not None else HttpJsonClient(timeout=timeout)
+        resolved_timeout = resolve_timeout(timeout, default=self.DEFAULT_TIMEOUT)
+        self._client = client if client is not None else HttpJsonClient(timeout=resolved_timeout)
         self._base_url = _resolve_base_url(base_url, self.BASE_URL_ENV, self.DEFAULT_BASE_URL)
         self._model = model or os.environ.get(self.MODEL_ENV) or self.DEFAULT_MODEL
+        self._timeout = resolved_timeout
 
     @property
     def base_url(self) -> str:
@@ -49,6 +57,10 @@ class OllamaTeacher(Teacher):
     @property
     def model(self) -> str:
         return self._model
+
+    @property
+    def timeout(self) -> float:
+        return self._timeout
 
     def propose(self, request: TeacherRequest) -> TeacherResponse:
         prompt = self.render_prompt(request)

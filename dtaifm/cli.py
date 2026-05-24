@@ -106,6 +106,7 @@ def cmd_propose(args: argparse.Namespace) -> int:
         args.teacher,
         model=args.model,
         base_url=args.teacher_base_url,
+        timeout=args.teacher_timeout,
     )
     request = TeacherRequest(
         constraints=constraints,
@@ -342,6 +343,7 @@ def cmd_repropose(args: argparse.Namespace) -> int:
         args.teacher,
         model=args.model,
         base_url=args.teacher_base_url,
+        timeout=args.teacher_timeout,
     )
     request = TeacherRequest(
         constraints=constraints,
@@ -412,6 +414,7 @@ def cmd_demo(args: argparse.Namespace) -> int:
         args.teacher,
         model=args.model,
         base_url=args.teacher_base_url,
+        timeout=args.teacher_timeout,
     )
     constraints = load_constraints(constraints_path)
     request = TeacherRequest(
@@ -676,6 +679,16 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Model identifier passed to the teacher (e.g. 'llama3.2', 'Qwen3-0.6B-GGUF', 'claude-sonnet-4-6').",
     )
+    p_propose.add_argument(
+        "--teacher-timeout",
+        type=float,
+        default=None,
+        help=(
+            "HTTP timeout in seconds for local-HTTP teachers (ollama, lemonade). "
+            "Override order: this flag > DTAIFM_HTTP_TIMEOUT env var > adapter default (60s). "
+            "Raise it for thinking models whose reasoning phase eats into the budget."
+        ),
+    )
     _add_domain_argument(p_propose)
     p_propose.set_defaults(func=cmd_propose)
 
@@ -763,6 +776,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Model identifier passed to the teacher.",
     )
     p_demo.add_argument(
+        "--teacher-timeout",
+        type=float,
+        default=None,
+        help=(
+            "HTTP timeout in seconds for local-HTTP teachers (ollama, lemonade). "
+            "Override order: this flag > DTAIFM_HTTP_TIMEOUT env var > adapter default (60s). "
+            "Raise it for thinking models that take longer than 60s end to end."
+        ),
+    )
+    p_demo.add_argument(
         "--constraints",
         default=None,
         help="Override constraints file (required for non-built-in domains).",
@@ -814,6 +837,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--model",
         default=None,
         help="Model identifier passed to the teacher.",
+    )
+    p_repropose.add_argument(
+        "--teacher-timeout",
+        type=float,
+        default=None,
+        help=(
+            "HTTP timeout in seconds for local-HTTP teachers (ollama, lemonade). "
+            "Override order: this flag > DTAIFM_HTTP_TIMEOUT env var > adapter default (60s)."
+        ),
     )
     _add_domain_argument(p_repropose)
     p_repropose.set_defaults(func=cmd_repropose)

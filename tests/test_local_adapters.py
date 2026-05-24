@@ -363,6 +363,80 @@ def test_lemonade_connection_failure_surfaces_runtime_error():
 
 
 # ======================================================================
+# Configurable HTTP timeout (v0.1.1)
+# ======================================================================
+
+class TestOllamaTimeout:
+    def test_default_timeout_when_neither_arg_nor_env(self, monkeypatch):
+        monkeypatch.delenv("DTAIFM_HTTP_TIMEOUT", raising=False)
+        teacher = OllamaTeacher(client=FakeHttpClient())
+        assert teacher.timeout == 60.0
+
+    def test_env_timeout_used_when_no_explicit_value(self, monkeypatch):
+        monkeypatch.setenv("DTAIFM_HTTP_TIMEOUT", "300")
+        teacher = OllamaTeacher(client=FakeHttpClient())
+        assert teacher.timeout == 300.0
+
+    def test_explicit_timeout_beats_env(self, monkeypatch):
+        monkeypatch.setenv("DTAIFM_HTTP_TIMEOUT", "300")
+        teacher = OllamaTeacher(client=FakeHttpClient(), timeout=600.0)
+        assert teacher.timeout == 600.0
+
+    def test_negative_explicit_timeout_rejected(self):
+        with pytest.raises(ValueError, match="positive"):
+            OllamaTeacher(client=FakeHttpClient(), timeout=-1.0)
+
+    def test_zero_explicit_timeout_rejected(self):
+        with pytest.raises(ValueError, match="positive"):
+            OllamaTeacher(client=FakeHttpClient(), timeout=0.0)
+
+    def test_non_numeric_env_value_fails_clearly(self, monkeypatch):
+        monkeypatch.setenv("DTAIFM_HTTP_TIMEOUT", "not-a-number")
+        with pytest.raises(ValueError, match="DTAIFM_HTTP_TIMEOUT"):
+            OllamaTeacher(client=FakeHttpClient())
+
+    def test_negative_env_value_rejected(self, monkeypatch):
+        monkeypatch.setenv("DTAIFM_HTTP_TIMEOUT", "-10")
+        with pytest.raises(ValueError, match="positive"):
+            OllamaTeacher(client=FakeHttpClient())
+
+    def test_real_http_client_receives_configured_timeout(self, monkeypatch):
+        # When the adapter constructs its own HttpJsonClient (no client= injected),
+        # that client must use the resolved timeout.
+        monkeypatch.delenv("DTAIFM_HTTP_TIMEOUT", raising=False)
+        teacher = OllamaTeacher(timeout=180.0)
+        # The internal client is our HttpJsonClient with the timeout attribute.
+        assert teacher._client.timeout == 180.0
+
+
+class TestLemonadeTimeout:
+    def test_default_timeout_when_neither_arg_nor_env(self, monkeypatch):
+        monkeypatch.delenv("DTAIFM_HTTP_TIMEOUT", raising=False)
+        teacher = LemonadeTeacher(client=FakeHttpClient())
+        assert teacher.timeout == 60.0
+
+    def test_env_timeout_used_when_no_explicit_value(self, monkeypatch):
+        monkeypatch.setenv("DTAIFM_HTTP_TIMEOUT", "600")
+        teacher = LemonadeTeacher(client=FakeHttpClient())
+        assert teacher.timeout == 600.0
+
+    def test_explicit_timeout_beats_env(self, monkeypatch):
+        monkeypatch.setenv("DTAIFM_HTTP_TIMEOUT", "300")
+        teacher = LemonadeTeacher(client=FakeHttpClient(), timeout=900.0)
+        assert teacher.timeout == 900.0
+
+    def test_invalid_env_fails_clearly(self, monkeypatch):
+        monkeypatch.setenv("DTAIFM_HTTP_TIMEOUT", "garbage")
+        with pytest.raises(ValueError, match="DTAIFM_HTTP_TIMEOUT"):
+            LemonadeTeacher(client=FakeHttpClient())
+
+    def test_real_http_client_receives_configured_timeout(self, monkeypatch):
+        monkeypatch.delenv("DTAIFM_HTTP_TIMEOUT", raising=False)
+        teacher = LemonadeTeacher(timeout=240.0)
+        assert teacher._client.timeout == 240.0
+
+
+# ======================================================================
 # Registry integration
 # ======================================================================
 
@@ -387,6 +461,23 @@ class TestRegistryThreadsOptions:
     def test_get_teacher_ignores_irrelevant_options_for_mock(self):
         from dtaifm.teacher.registry import get_teacher
         # Mock teacher should accept (and silently ignore) the extra kwargs.
-        teacher = get_teacher("mock", base_url="http://nowhere", model="anything")
+        teacher = get_teacher(
+            "mock",
+            base_url="http://nowhere",
+            model="anything",
+            timeout=300.0,
+        )
         from dtaifm.teacher.mock_teacher import MockTeacher
         assert isinstance(teacher, MockTeacher)
+
+    def test_get_teacher_threads_timeout_to_lemonade(self, monkeypatch):
+        monkeypatch.delenv("DTAIFM_HTTP_TIMEOUT", raising=False)
+        from dtaifm.teacher.registry import get_teacher
+        teacher = get_teacher("lemonade", timeout=420.0)
+        assert teacher.timeout == 420.0
+
+    def test_get_teacher_threads_timeout_to_ollama(self, monkeypatch):
+        monkeypatch.delenv("DTAIFM_HTTP_TIMEOUT", raising=False)
+        from dtaifm.teacher.registry import get_teacher
+        teacher = get_teacher("ollama", timeout=420.0)
+        assert teacher.timeout == 420.0

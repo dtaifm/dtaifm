@@ -99,7 +99,28 @@ def test_prompt_mentions_required_fields():
     prompt = render_teacher_prompt(request)
     for required in ("satisfies_constraints", "rationale", "trigger", "actions"):
         assert required in prompt
-    assert "submit_ruleset" in prompt
+
+
+def test_prompt_specifies_top_level_json_envelope():
+    request = TeacherRequest(constraints=_sample_constraints())
+    prompt = render_teacher_prompt(request)
+    # Must explicitly describe the top-level envelope shape so non-tool-use
+    # local providers don't wrap output in arbitrary keys.
+    assert "schema_version" in prompt
+    assert "rules" in prompt
+    # Must warn against wrapping in other keys; lower-case is fine.
+    assert "do not wrap" in prompt.lower()
+
+
+def test_prompt_is_provider_neutral_and_does_not_mention_submit_ruleset():
+    # The shared prompt is sent verbatim by ollama/lemonade/anthropic adapters.
+    # The Anthropic adapter still uses tool-use internally, but the literal
+    # tool name must not leak into the prompt body — that caused local LLMs to
+    # wrap their output in a `submit_ruleset` key.
+    request = TeacherRequest(constraints=_sample_constraints())
+    prompt = render_teacher_prompt(request)
+    assert "submit_ruleset" not in prompt
+    assert "submit_ruleset" not in prompt.lower()
 
 
 def test_prompt_lists_known_condition_types():
