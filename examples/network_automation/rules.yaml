@@ -1,0 +1,64 @@
+# Portable rule file for the network_automation domain.
+# Mirrors MockTeacher's network_automation fixture so `dtaifm run` reproduces the demo.
+schema_version: "0.1"
+
+rules:
+  - id: r_apply_router_config_safely
+    name: "Apply Router Config During Maintenance"
+    trigger:
+      device: scheduler
+      event: config_change_requested
+    conditions:
+      - type: mode_is
+        mode: maintenance
+      - type: mode_not
+        mode: unapproved
+    actions:
+      - device: router1
+        action: apply_config
+      - device: router1
+        action: rollback
+    satisfies_constraints:
+      - changes_in_maintenance_mode_only
+      - apply_config_requires_rollback
+      - max_apply_config_devices
+      - bgp_reset_requires_approval
+    explanation: >-
+      Applies a router1 config change and registers a rollback action, only
+      during maintenance mode and when not in unapproved mode.
+    rationale: >-
+      All mutability constraints are honored: maintenance-mode gate, rollback
+      companion action, single-device target within the batch limit, and the
+      mode_not check satisfies the approval-required mode override.
+
+  - id: r_disable_mgmt_unsafe
+    name: "Disable Management Interface (UNSAFE)"
+    trigger:
+      device: monitoring
+      event: interface_down_alert
+    conditions: []
+    actions:
+      - device: mgmt0
+        action: disable
+    satisfies_constraints: []
+    explanation: ""
+    rationale: >-
+      Deliberately unsafe candidate: should be rejected by no_disable_mgmt and
+      rule_must_explain. Tests the validator's rejection path in the
+      network_automation domain.
+
+  - id: r_notify_operator_on_flap
+    name: "Notify Operator on BGP Flap"
+    trigger:
+      device: bgp_neighbor_1
+      event: bgp_session_flap
+    conditions: []
+    actions:
+      - device: operator_pager
+        action: notify_operator
+    satisfies_constraints:
+      - rule_must_explain
+    explanation: "Pages the operator when a BGP session flaps. Pure notification, no config change."
+    rationale: >-
+      Notification-only rules don't touch managed devices, so they don't need
+      maintenance-mode or rollback guards.

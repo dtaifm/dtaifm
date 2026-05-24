@@ -1,0 +1,10 @@
+{
+  "schema_version": "0.1",
+  "event": {
+    "device": "ticket_system",
+    "type": "ticket_opened"
+  },
+  "time": "2024-01-01T10:00:00",
+  "mode": "normal",
+  "devices": {}
+}

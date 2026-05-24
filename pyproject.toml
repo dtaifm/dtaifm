@@ -1,0 +1,90 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dtaifm"
+version = "0.1.0"
+description = "Deterministic-first Teaching AI Framework Middleware — AI proposes, the deterministic layer disposes."
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+keywords = [
+    "ai",
+    "middleware",
+    "deterministic",
+    "validation",
+    "constraints",
+    "llm",
+    "ollama",
+    "anthropic",
+    "audit",
+]
+authors = [
+    {name = "dtaifm contributors"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: System :: Systems Administration",
+]
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "jsonschema>=4.0",
+    "ruff>=0.6",
+    "build>=1.0",
+]
+anthropic = [
+    "anthropic>=0.30",
+]
+
+[project.urls]
+Homepage = "https://github.com/markj87/dtaifm"
+Repository = "https://github.com/markj87/dtaifm"
+Issues = "https://github.com/markj87/dtaifm/issues"
+Changelog = "https://github.com/markj87/dtaifm/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/markj87/dtaifm/tree/main/docs"
+
+[project.scripts]
+dtaifm = "dtaifm.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dtaifm*"]
+
+[tool.setuptools.package-data]
+"dtaifm._demo.smart_home" = ["constraints.yaml", "state.json"]
+"dtaifm._demo.network_automation" = ["constraints.yaml", "state.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+# Conservative selection: pyflakes (real bugs) + a subset of pycodestyle.
+# Style nitpicks are deliberately not enforced; project intent is clarity over uniformity.
+select = ["F", "E", "W"]
+ignore = [
+    "E501",   # line too long — formatter's job
+    "E402",   # module-level import not at top — we have legitimate cases
+    "E731",   # lambda assigned to name — used intentionally for factories
+    "E741",   # ambiguous variable name (l/I/O)
+    "E721",   # type comparison via == (sometimes intentional)
+]

@@ -1,0 +1,45 @@
+schema_version: "0.1"
+
+constraints:
+  - id: no_auto_unlock
+    description: "Never unlock doors automatically."
+    type: absolute_prohibition
+    applies_to:
+      - front_door
+      - back_door
+      - garage_door
+    action: unlock
+
+  - id: no_hvac_conflict
+    description: "Do not turn heating and AC on at the same time."
+    type: mutual_exclusion
+    applies_to:
+      - heating
+      - ac
+
+  - id: motion_light_hours
+    description: "Lights may turn on from motion only during configured night hours."
+    type: temporal_restriction
+    applies_to:
+      - hallway_light
+      - bedroom_light
+      - living_room_light
+    trigger: motion_detected
+
+  - id: security_override
+    description: "Security mode overrides comfort automation."
+    type: mode_override
+    overriding_mode: security
+    comfort_devices:
+      - heating
+      - ac
+      - hallway_light
+      - bedroom_light
+      - living_room_light
+      - thermostat
+
+  - id: rule_must_explain
+    description: "Every generated rule must explain which constraint it satisfies."
+    type: metadata_requirement
+    required_fields:
+      - satisfies_constraints

@@ -1,0 +1,69 @@
+# Portable rule file. Could be hand-written, AI-generated, or produced by `dtaifm propose`.
+# Mirrors the MockTeacher's output so `dtaifm run` reproduces the Python demo.
+schema_version: "0.1"
+
+rules:
+  - id: r_motion_night_light
+    name: "Motion-Activated Night Light"
+    trigger:
+      device: motion_sensor
+      event: motion_detected
+    conditions:
+      - type: time_range
+        start_hour: 22
+        end_hour: 6
+      - type: mode_not
+        mode: security
+    actions:
+      - device: hallway_light
+        action: turn_on
+        duration: 300
+    satisfies_constraints:
+      - motion_light_hours
+      - security_override
+    explanation: >-
+      Activates the hallway light on motion only during night hours
+      (22:00-06:00) and only when the system is not in security mode.
+    rationale: >-
+      Comfort lighting from motion should be restricted to night hours to avoid
+      unnecessary daytime activation, and disabled in security mode to preserve
+      the security_override constraint.
+
+  - id: r_auto_unlock_door
+    name: "Auto-Unlock on Arrival (UNSAFE)"
+    trigger:
+      device: arrival_sensor
+      event: user_arrived
+    conditions: []
+    actions:
+      - device: front_door
+        action: unlock
+    satisfies_constraints: []
+    explanation: ""
+    rationale: >-
+      Deliberately unsafe candidate: exercises the validator's rejection path
+      against the no_auto_unlock and rule_must_explain constraints.
+
+  - id: r_heating_cold
+    name: "Activate Heating When Cold"
+    trigger:
+      device: thermostat
+      event: temperature_below_threshold
+    conditions:
+      - type: device_state
+        device: ac
+        state: "off"
+      - type: mode_not
+        mode: security
+    actions:
+      - device: heating
+        action: turn_on
+    satisfies_constraints:
+      - no_hvac_conflict
+      - security_override
+    explanation: >-
+      Activates heating only when AC is confirmed off (prevents HVAC conflict)
+      and only when the system is not in security mode.
+    rationale: >-
+      Heating activation must be gated on AC being off to honor
+      no_hvac_conflict, and disabled in security mode to honor security_override.

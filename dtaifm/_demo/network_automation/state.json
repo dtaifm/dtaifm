@@ -1,0 +1,10 @@
+{
+  "schema_version": "0.1",
+  "event": {
+    "device": "scheduler",
+    "type": "config_change_requested"
+  },
+  "time": "2024-01-01T02:30:00",
+  "mode": "maintenance",
+  "devices": {}
+}

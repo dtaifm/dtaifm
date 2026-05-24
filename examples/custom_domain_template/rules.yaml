@@ -1,0 +1,41 @@
+schema_version: "0.1"
+
+rules:
+  - id: r_notify_on_new_ticket
+    name: "Notify Support Team on New Ticket"
+    trigger:
+      device: ticket_system
+      event: ticket_opened
+    conditions: []
+    actions:
+      - device: support_team
+        action: notify_team
+    satisfies_constraints:
+      - rule_must_explain
+    explanation: >-
+      Notifies the support team when any new ticket is opened. No escalation
+      involved, so the escalation_requires_assignment constraint does not apply.
+    rationale: >-
+      A pure notification on ticket creation is safe — it neither escalates nor
+      assigns. The rule_must_explain constraint is satisfied by listing this
+      satisfies_constraints entry.
+
+  - id: r_safe_escalation
+    name: "Escalate with Engineer Assignment"
+    trigger:
+      device: ticket_system
+      event: ticket_escalated
+    conditions: []
+    actions:
+      - device: ticket_123
+        action: assign_engineer
+      - device: ticket_123
+        action: escalate
+    satisfies_constraints:
+      - escalation_requires_assignment
+      - rule_must_explain
+    explanation: >-
+      Escalates a ticket while assigning an engineer to handle it.
+    rationale: >-
+      Honors the escalation_requires_assignment constraint by pairing the
+      escalate action with assign_engineer on the same ticket.

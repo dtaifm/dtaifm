@@ -1,0 +1,48 @@
+schema_version: "0.1"
+
+constraints:
+  - id: no_disable_mgmt
+    description: "Never disable management interfaces — that would lock operators out."
+    type: absolute_prohibition
+    applies_to:
+      - mgmt0
+      - mgmt1
+    action: disable
+
+  - id: changes_in_maintenance_mode_only
+    description: "Config changes are only allowed while in maintenance mode."
+    type: mode_required
+    required_mode: maintenance
+    applies_to:
+      - router1
+      - router2
+      - switch1
+      - switch2
+      - bgp_neighbor_1
+      - bgp_neighbor_2
+
+  - id: apply_config_requires_rollback
+    description: "Any rule that applies config must also include a rollback action."
+    type: companion_action_required
+    if_action: apply_config
+    requires_action: rollback
+
+  - id: max_apply_config_devices
+    description: "Don't apply config to more than 2 devices in a single rule."
+    type: action_target_limit
+    action_type: apply_config
+    max_devices: 2
+
+  - id: bgp_reset_requires_approval
+    description: "BGP neighbor resets must not happen while in unapproved mode."
+    type: mode_override
+    overriding_mode: unapproved
+    comfort_devices:
+      - bgp_neighbor_1
+      - bgp_neighbor_2
+
+  - id: rule_must_explain
+    description: "Every generated rule must declare which constraints it satisfies."
+    type: metadata_requirement
+    required_fields:
+      - satisfies_constraints

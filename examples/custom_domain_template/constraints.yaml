@@ -1,0 +1,12 @@
+schema_version: "0.1"
+
+constraints:
+  - id: escalation_requires_assignment
+    description: "Any rule that escalates must also assign an engineer to take ownership."
+    type: escalation_requires_assignment
+
+  - id: rule_must_explain
+    description: "Every generated rule must declare which constraints it satisfies."
+    type: metadata_requirement
+    required_fields:
+      - satisfies_constraints

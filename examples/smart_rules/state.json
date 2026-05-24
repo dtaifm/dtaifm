@@ -1,0 +1,13 @@
+{
+  "schema_version": "0.1",
+  "event": {
+    "device": "motion_sensor",
+    "type": "motion_detected"
+  },
+  "time": "2024-01-01T23:00:00",
+  "mode": "normal",
+  "devices": {
+    "ac": "off",
+    "heating": "off"
+  }
+}
