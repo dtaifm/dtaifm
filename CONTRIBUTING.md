@@ -7,7 +7,7 @@ dtaifm is open-source deterministic-first AI middleware. It is **not** a smart-h
 ## Quick setup
 
 ```bash
-git clone https://github.com/markj87/dtaifm
+git clone https://github.com/dtaifm/dtaifm
 cd dtaifm
 pip install -e ".[dev]"
 pytest

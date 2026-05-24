@@ -53,11 +53,11 @@ anthropic = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/markj87/dtaifm"
-Repository = "https://github.com/markj87/dtaifm"
-Issues = "https://github.com/markj87/dtaifm/issues"
-Changelog = "https://github.com/markj87/dtaifm/blob/main/CHANGELOG.md"
-Documentation = "https://github.com/markj87/dtaifm/tree/main/docs"
+Homepage = "https://github.com/dtaifm/dtaifm"
+Repository = "https://github.com/dtaifm/dtaifm"
+Issues = "https://github.com/dtaifm/dtaifm/issues"
+Changelog = "https://github.com/dtaifm/dtaifm/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/dtaifm/dtaifm/tree/main/docs"
 
 [project.scripts]
 dtaifm = "dtaifm.cli:main"

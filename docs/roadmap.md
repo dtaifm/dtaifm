@@ -62,6 +62,6 @@ These are ideas, not commitments. Each is reasonably scoped for a contributor.
 
 ## How to influence the roadmap
 
-- Open an issue against the [GitHub repository](https://github.com/markj87/dtaifm) using the feature-request template.
+- Open an issue against the [GitHub repository](https://github.com/dtaifm/dtaifm) using the feature-request template.
 - Sketch the architectural fit explicitly. PRs that align with the contract in [docs/concepts.md](concepts.md) move quickly.
 - For new domain packs and teacher adapters: a PR with tests is the fastest path. Use [`examples/custom_domain_template/`](../examples/custom_domain_template/) or `dtaifm/teacher/adapters/ollama_adapter.py` as a starting point.

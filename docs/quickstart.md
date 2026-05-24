@@ -5,7 +5,7 @@ Five minutes from clone to your first review.
 ## Install
 
 ```bash
-git clone https://github.com/markj87/dtaifm
+git clone https://github.com/dtaifm/dtaifm
 cd dtaifm
 pip install -e ".[dev]"
 ```

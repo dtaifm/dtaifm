@@ -31,4 +31,4 @@ semantic versioning once it leaves alpha.
 ### Launch
 - **Milestone 10** — `dtaifm demo <domain>` launch-grade walkthrough (`propose → review → bundle → replay → inspect`, fully offline by default via mock teacher); bundled demo fixtures shipped inside the wheel under `dtaifm/_demo/<domain_id>/`; launch docs (`docs/launch.md`, `docs/roadmap.md`, `docs/comparison.md`, `docs/release-checklist.md`); README badges + 60-second demo section; demo smoke tests added to both the test job and the release-readiness wheel job in CI. 268 tests.
 
-[0.1.0]: https://github.com/markj87/dtaifm/releases/tag/v0.1.0
+[0.1.0]: https://github.com/dtaifm/dtaifm/releases/tag/v0.1.0
