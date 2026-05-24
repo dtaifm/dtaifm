@@ -17,11 +17,13 @@ All file formats are explicitly versioned (`schema_version`) and have published 
 ## 60-second demo
 
 ```bash
-pip install -e ".[dev]"
+pip install dtaifm
 dtaifm demo smart_home
 ```
 
 That single command walks the entire pipeline — `propose → validate → execute → bundle → replay` — and prints a step-by-step report ending in `RESULT: PASSED`. Runs fully offline using the mock teacher; no API key needed.
+
+> **Alternate source install** — if you want to develop against the latest `main`, install from GitHub instead: `pip install git+https://github.com/dtaifm/dtaifm.git`. For pinned source installs, append `@v0.1.0` (or any tag).
 
 Want to see the second built-in domain or a local LLM driving it?
 

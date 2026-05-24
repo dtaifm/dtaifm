@@ -1,20 +1,35 @@
 # Quickstart
 
-Five minutes from clone to your first review.
+Five minutes from `pip install` to your first review.
 
-## Install
+## Install (recommended)
 
 ```bash
-git clone https://github.com/dtaifm/dtaifm
-cd dtaifm
-pip install -e ".[dev]"
+pip install dtaifm
 ```
 
 Confirm:
 
 ```bash
-pytest                          # 251 tests, fully offline
 dtaifm --help                   # CLI is on PATH (or use `python -m dtaifm`)
+```
+
+### Alternate source installs
+
+Use these when you want to contribute, run the test suite, or pin to a specific git revision instead of a PyPI release:
+
+```bash
+# Latest main from GitHub
+pip install git+https://github.com/dtaifm/dtaifm.git
+
+# Pinned to a tag
+pip install git+https://github.com/dtaifm/dtaifm.git@v0.1.0
+
+# Editable clone with the dev extras (pytest, ruff, jsonschema, build)
+git clone https://github.com/dtaifm/dtaifm
+cd dtaifm
+pip install -e ".[dev]"
+pytest                          # 268 tests, fully offline
 ```
 
 ## Run the built-in smart home demo

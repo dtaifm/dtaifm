@@ -20,11 +20,13 @@ No rule reaches the runtime without passing the validator. This is the architect
 ## 60-second demo
 
 ```bash
-pip install -e ".[dev]"
+pip install dtaifm
 dtaifm demo smart_home
 ```
 
 The demo walks the full pipeline — propose → validate → execute → bundle → replay — and prints a step-by-step report ending in `RESULT: PASSED`. It runs fully offline using a mock teacher; no API key is required.
+
+> For development against the latest `main` (or a pinned git tag), use `pip install git+https://github.com/dtaifm/dtaifm.git` as an alternate source install. The recommended user install is the PyPI command above.
 
 Also try:
 
