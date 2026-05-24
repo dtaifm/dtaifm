@@ -3,7 +3,7 @@
 All notable changes to this project are tracked here. The project follows
 semantic versioning once it leaves alpha.
 
-## [0.1.0] — Unreleased
+## [0.1.0] — 2026-05-24
 
 ### Core architecture
 - **Milestone 1** — Core primitives (`Constraint`, `Rule`, `RuleSet`, `ValidationResult`, `ExecutionResult`), `Teacher` interface with `MockTeacher`, deterministic `Validator` with five built-in constraint types, `PythonRuntime`, smart-home demo. 16 tests.
