@@ -623,12 +623,27 @@ def _parse_time(value) -> datetime:
     return datetime.fromisoformat(value)
 
 
+def _add_domain_module_argument(subparser: argparse.ArgumentParser) -> None:
+    subparser.add_argument(
+        "--domain-module",
+        default=None,
+        metavar="PKG.MODULE",
+        help=(
+            "Import this module before resolving the domain so a custom or "
+            "not-yet-installed domain pack registers itself (the module must call "
+            "register_domain() at import). Installed packs are auto-discovered via "
+            "the 'dtaifm.domains' entry-point group and need no flag."
+        ),
+    )
+
+
 def _add_domain_argument(subparser: argparse.ArgumentParser) -> None:
     subparser.add_argument(
         "--domain",
         default=DEFAULT_DOMAIN,
         help=f"Domain id (default: {DEFAULT_DOMAIN}; available: {', '.join(list_domains())})",
     )
+    _add_domain_module_argument(subparser)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -738,6 +753,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_replay.add_argument("bundle", help="Path to .dtaifm-review.json")
     p_replay.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
+    _add_domain_module_argument(p_replay)
     p_replay.set_defaults(func=cmd_replay)
 
     p_inspect = subparsers.add_parser(
@@ -796,6 +812,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Override state file (required for non-built-in domains).",
     )
     p_demo.add_argument("--json", action="store_true", help="Emit machine-readable JSON instead of the walkthrough.")
+    _add_domain_module_argument(p_demo)
     p_demo.set_defaults(func=cmd_demo)
 
     p_teachers = subparsers.add_parser(
@@ -856,6 +873,14 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    domain_module = getattr(args, "domain_module", None)
+    if domain_module:
+        import importlib
+        try:
+            importlib.import_module(domain_module)
+        except Exception as exc:  # noqa: BLE001 - a bad user module must not dump a traceback
+            print(f"Error: failed to load --domain-module '{domain_module}': {exc}", file=sys.stderr)
+            return 2
     try:
         return args.func(args)
     except FileNotFoundError as exc:

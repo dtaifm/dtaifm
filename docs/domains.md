@@ -56,7 +56,25 @@ MY_DOMAIN = Domain(
 register_domain(MY_DOMAIN)
 ```
 
-To make it visible to the CLI you must import the module so `register_domain(...)` runs. The two built-in packs are auto-imported by `dtaifm/domains/__init__.py`; for a third-party pack, import it in your own startup code or add it to that file.
+To make it visible to the CLI the domain must be registered before resolution. There are three ways:
+
+- **Built-in packs** are auto-imported by `dtaifm/domains/__init__.py`.
+- **Installed third-party packs** are auto-discovered from the `dtaifm.domains` entry-point group — advertise your `Domain` (or a zero-argument callable returning one) in your package metadata, and every domain-resolving command picks it up with no flag:
+
+  ```toml
+  # pyproject.toml of your domain package
+  [project.entry-points."dtaifm.domains"]
+  my_domain = "my_pkg.domain:MY_DOMAIN"
+  ```
+
+- **Local or not-yet-installed packs** can be loaded ad hoc with `--domain-module`, which imports the named module (so its `register_domain(...)` runs) before resolving the domain:
+
+  ```bash
+  dtaifm validate --domain my_domain --domain-module my_pkg.domain \
+    constraints.yaml rules.yaml
+  ```
+
+  `--domain-module` is accepted by every domain-resolving command (`validate`, `run`, `review`, `propose`, `prompt`, `feedback`, `repropose`, `demo`, and `replay`). A broken entry point is reported as a warning and skipped, never fatal.
 
 ## Custom constraint evaluators
 
