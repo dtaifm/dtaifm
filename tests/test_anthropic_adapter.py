@@ -105,7 +105,7 @@ def test_adapter_does_not_validate_or_execute():
     teacher = AnthropicTeacher(client=client)
     response = teacher.propose(TeacherRequest(constraints=_sample_constraints()))
     # No validator, no runtime — just a portable artifact.
-    assert response.raw_provider_output  # preserved for audit
+    assert response.raw_provider_output  # preserved in-memory (diagnostic only; never serialized)
     assert len(response.ruleset) == 1
 
 
