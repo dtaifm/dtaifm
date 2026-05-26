@@ -43,6 +43,29 @@ No rule reaches the runtime without passing the validator. This is the architect
 
 Domain packs may register additional constraint types. The validator dispatches by `constraint.type` (a plain string), falling back from domain-registered evaluators to the built-ins.
 
+## Writing a domain pack
+
+A **domain pack** is a `Domain` that declares the vocabulary teachers may use, plus any custom constraint evaluators. The validator and runtime both refuse out-of-vocabulary rules.
+
+```python
+from dtaifm.domains.base import Domain
+from dtaifm.domains.registry import register_domain
+
+MY_DOMAIN = Domain(
+    id="my_domain",
+    version="0.1",
+    trigger_events=frozenset({"event_a", "event_b"}),       # allowed trigger events
+    condition_types=frozenset({"time_range", "mode_not"}),  # known condition types
+    action_kinds=frozenset({"notify", "escalate"}),         # allowed action verbs
+    extra_constraint_evaluators={"my_type": my_evaluator},  # custom checks, keyed by constraint.type
+)
+register_domain(MY_DOMAIN)
+```
+
+A custom constraint evaluator is a **pure function** with the same signature as the built-ins — `(Rule, Constraint) -> ConstraintViolation | None` — returning `None` when the rule satisfies the constraint. By design it receives only the rule and the constraint: no external state, database, or scoring handle. Keep your system of record outside dtaifm and pass what the evaluator needs in as constraint parameters (or as a validated attestation).
+
+See **[Domains](domains.md)** for the full walkthrough — the `examples/custom_domain_template/` starting point, vocabulary enforcement, and reading the registry.
+
 ## The teacher contract
 
 Every teacher — `MockTeacher`, `AnthropicTeacher`, `OllamaTeacher`, `LemonadeTeacher`, and any custom adapter — implements:
@@ -53,7 +76,7 @@ class Teacher(ABC):
     def propose(self, request: TeacherRequest) -> TeacherResponse: ...
 ```
 
-A `TeacherRequest` carries the constraints, the domain (with its vocabulary), an optional `PromptContext`, and — for revisions — a `feedback` artifact and `previous_rules`. A `TeacherResponse` carries a portable `RuleSet` plus the raw provider output for audit.
+A `TeacherRequest` carries the constraints, the domain (with its vocabulary), an optional `PromptContext`, and — for revisions — a `feedback` artifact and `previous_rules`. A `TeacherResponse` carries a portable `RuleSet`. It also exposes `raw_provider_output` (the raw model text) as **in-memory diagnostic data only** — the framework never serializes it into proposed rule files or audit bundles, so a caller that needs to keep it must persist it themselves to a private path.
 
 ## Trust boundary rules
 
@@ -62,6 +85,24 @@ A `TeacherRequest` carries the constraints, the domain (with its vocabulary), an
 3. **Domains define what is possible; teachers only propose within that boundary.** The validator rejects rules using out-of-vocabulary triggers, conditions, or actions; the runtime double-checks at execution time.
 4. **Provider dependencies stay optional.** `pip install dtaifm` works without any LLM SDK.
 5. **Replay is deterministic.** Bundles use canonical-JSON SHA-256 hashes; replay reproduces exactly or fails clearly.
+
+## Audit bundles
+
+`dtaifm review ... --bundle review.json` writes a portable, replayable record of a single review; `dtaifm replay` recomputes it on a fresh checkout and confirms — via canonical-JSON SHA-256 hashes — that the same inputs reproduce the same outputs. A bundle holds **only** the keys below; it never contains raw provider prompts or responses (see the teacher contract above).
+
+| Key | Contents |
+|---|---|
+| `bundle_version` | Bundle format version. |
+| `framework_version` | dtaifm version that wrote the bundle. |
+| `schema_version` | Portable-file schema version. |
+| `created_at` | UTC timestamp (seconds precision). |
+| `domain` | `{id, version}` of the domain used. |
+| `proposals` | Provenance grouped by `proposal_id`: `proposed_by`, `created_at`, `rule_ids`. |
+| `inputs` | `constraints`, `rules`, `state` — each as `{source, hash, content}`. |
+| `validation` | `{hash, result}` — per-rule approve/reject outcome. |
+| `execution` | `{hash, result}` — event, triggered rules, actions taken, and trace. |
+
+Each `hash` is `sha256:<hex>` over the canonical-JSON form of its `content`/`result`. See **[Audit bundles](audit-bundles.md)** for replay semantics and the public Python API.
 
 ## File formats
 

@@ -54,8 +54,12 @@ class TeacherRequest:
 class TeacherResponse:
     """A teacher's output, always in portable RuleSet form.
 
-    `raw_provider_output` is kept for audit and debugging — it is NEVER used
-    by the runtime. The runtime only sees the parsed, validator-approved RuleSet.
+    `raw_provider_output` is in-memory diagnostic data only. The runtime never
+    uses it — it sees only the parsed, validator-approved RuleSet — and the
+    framework NEVER serializes it into any artifact: proposed/reproposed rule
+    files and audit bundles carry the parsed RuleSet (and review metadata) only.
+    A caller that wants to retain raw output must persist it themselves, to a
+    private path of their own choosing.
     """
 
     ruleset: RuleSet
