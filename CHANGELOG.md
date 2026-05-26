@@ -3,6 +3,29 @@
 All notable changes to this project are tracked here. The project follows
 semantic versioning once it leaves alpha.
 
+## [0.1.2] — 2026-05-26
+
+Additive release: external domain discovery, a clarified (and regression-tested) raw-output contract, and concepts-doc closeout. No trust-boundary or rule-schema changes.
+
+### External / custom domain discovery
+
+- Installed third-party domain packs are auto-discovered from the `dtaifm.domains` entry-point group (an entry point may resolve to a `Domain` or a zero-argument callable returning one).
+- New `--domain-module PKG.MODULE` flag on every domain-resolving command (`validate`, `run`, `review`, `propose`, `prompt`, `feedback`, `repropose`, `demo`, `replay`) loads a local or not-yet-installed domain module before resolution.
+- A broken third-party entry point is reported as a warning and skipped — never fatal; unknown-domain errors still list the available domains.
+
+### Raw provider output clarified as diagnostic-only
+
+- `TeacherResponse.raw_provider_output` is documented as in-memory diagnostic data that the framework never serializes into proposed/reproposed rule files or audit bundles. Docstring and `docs/concepts.md` wording corrected.
+- Added regression tests asserting a sentinel raw output never leaks via `propose`, `repropose`, `demo`, or `review --bundle`.
+
+### Documentation
+
+- `docs/concepts.md` now links the domain-pack (`docs/domains.md`) and audit-bundle (`docs/audit-bundles.md`) guidance, with a "Writing a domain pack" section and a bundle-contents table.
+
+### Tests
+
+- Full suite: **304 passed**.
+
 ## [0.1.1] — 2026-05-24
 
 Post-launch dogfooding fixes discovered while running `dtaifm demo` against a real local Lemonade server hosting a thinking-model (Qwen 3.6). No code on the trust boundary changes; both fixes are additive.

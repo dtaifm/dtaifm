@@ -3,8 +3,8 @@
 [![tests](https://github.com/dtaifm/dtaifm/actions/workflows/tests.yml/badge.svg)](https://github.com/dtaifm/dtaifm/actions/workflows/tests.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
-[![Tests passing](https://img.shields.io/badge/tests-268%20passing-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/version-0.1.2-blue.svg)](CHANGELOG.md)
+[![Tests passing](https://img.shields.io/badge/tests-304%20passing-brightgreen.svg)](tests/)
 
 **AI proposes. The deterministic layer disposes. AI output is an artifact, not an action.**
 
@@ -509,7 +509,7 @@ register_teacher("custom", CustomTeacher)
 # Install with dev tools (pytest, jsonschema, ruff, build)
 pip install -e ".[dev]"
 
-# Run the test suite (256 tests, fully offline, no API keys)
+# Run the test suite (304 tests, fully offline, no API keys)
 pytest
 
 # Lint and format
@@ -521,7 +521,7 @@ python -m build --wheel
 
 # Smoke-test the wheel in a clean venv (also runs in CI)
 python -m venv /tmp/wheel-test
-/tmp/wheel-test/bin/pip install dist/dtaifm-0.1.0-py3-none-any.whl
+/tmp/wheel-test/bin/pip install dist/dtaifm-0.1.2-py3-none-any.whl
 /tmp/wheel-test/bin/dtaifm --help
 ```
 

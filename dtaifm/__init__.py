@@ -6,7 +6,7 @@ AI proposes. The deterministic layer disposes.
 # Framework version is read by dtaifm.bundle (and by tests); set it BEFORE the
 # bundle re-exports so that `from dtaifm import __version__` inside bundle.py
 # resolves on the partially-loaded package.
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 # Public Python API. The CLI is a thin wrapper over these functions.
 from dtaifm.bundle import (  # noqa: E402

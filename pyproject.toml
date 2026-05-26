@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dtaifm"
-version = "0.1.1"
+version = "0.1.2"
 description = "Deterministic-first Teaching AI Framework Middleware — AI proposes, the deterministic layer disposes."
 readme = "README.md"
 requires-python = ">=3.11"
