@@ -1,0 +1,300 @@
+{
+  "bundle_version": "0.1",
+  "framework_version": "0.1.2",
+  "schema_version": "0.1",
+  "created_at": "2026-05-26T21:24:03+00:00",
+  "domain": {
+    "id": "smart_home",
+    "version": "0.1"
+  },
+  "proposals": [
+    {
+      "proposal_id": "eb9ff031-df28-4c46-9bfe-65097e38457c",
+      "proposed_by": "mock",
+      "created_at": "2026-05-26T21:24:03+00:00",
+      "rule_ids": [
+        "r_motion_night_light",
+        "r_auto_unlock_door",
+        "r_heating_cold"
+      ]
+    }
+  ],
+  "inputs": {
+    "constraints": {
+      "source": "C:\\Users\\markj\\AppData\\Local\\Temp\\dtaifm-demo-5iub7ux4\\constraints.yaml",
+      "hash": "sha256:2377ea70ac2e65b5cd301e3755f65a03a2d180ee49d37083bef498026bc5ca86",
+      "content": [
+        {
+          "id": "no_auto_unlock",
+          "description": "Never unlock doors automatically.",
+          "type": "absolute_prohibition",
+          "applies_to": [
+            "front_door",
+            "back_door",
+            "garage_door"
+          ],
+          "action": "unlock"
+        },
+        {
+          "id": "no_hvac_conflict",
+          "description": "Do not turn heating and AC on at the same time.",
+          "type": "mutual_exclusion",
+          "applies_to": [
+            "heating",
+            "ac"
+          ]
+        },
+        {
+          "id": "motion_light_hours",
+          "description": "Lights may turn on from motion only during configured night hours.",
+          "type": "temporal_restriction",
+          "applies_to": [
+            "hallway_light",
+            "bedroom_light",
+            "living_room_light"
+          ],
+          "trigger": "motion_detected"
+        },
+        {
+          "id": "security_override",
+          "description": "Security mode overrides comfort automation.",
+          "type": "mode_override",
+          "overriding_mode": "security",
+          "comfort_devices": [
+            "heating",
+            "ac",
+            "hallway_light",
+            "bedroom_light",
+            "living_room_light",
+            "thermostat"
+          ]
+        },
+        {
+          "id": "rule_must_explain",
+          "description": "Every generated rule must explain which constraint it satisfies.",
+          "type": "metadata_requirement",
+          "required_fields": [
+            "satisfies_constraints"
+          ]
+        }
+      ]
+    },
+    "rules": {
+      "source": "C:\\Users\\markj\\AppData\\Local\\Temp\\dtaifm-demo-5iub7ux4\\proposed.yaml",
+      "hash": "sha256:16592e799b330c98900199ccf15e9310b72eb63cbc2db06ad212ff945fa3d3a4",
+      "content": {
+        "schema_version": "0.1",
+        "rules": [
+          {
+            "id": "r_motion_night_light",
+            "name": "Motion-Activated Night Light",
+            "trigger": {
+              "device": "motion_sensor",
+              "event": "motion_detected"
+            },
+            "conditions": [
+              {
+                "type": "time_range",
+                "start_hour": 22,
+                "end_hour": 6
+              },
+              {
+                "type": "mode_not",
+                "mode": "security"
+              }
+            ],
+            "actions": [
+              {
+                "device": "hallway_light",
+                "action": "turn_on",
+                "duration": 300
+              }
+            ],
+            "satisfies_constraints": [
+              "motion_light_hours",
+              "security_override"
+            ],
+            "explanation": "Activates the hallway light on motion only during night hours (22:00-06:00) and only when the system is not in security mode.",
+            "proposed_by": "mock",
+            "proposal_id": "eb9ff031-df28-4c46-9bfe-65097e38457c",
+            "created_at": "2026-05-26T21:24:03+00:00",
+            "rationale": "Comfort lighting from motion should be restricted to user-defined night hours to avoid unnecessary daytime activation, and disabled in security mode to preserve the security_override constraint."
+          },
+          {
+            "id": "r_auto_unlock_door",
+            "name": "Auto-Unlock on Arrival (UNSAFE)",
+            "trigger": {
+              "device": "arrival_sensor",
+              "event": "user_arrived"
+            },
+            "conditions": [],
+            "actions": [
+              {
+                "device": "front_door",
+                "action": "unlock"
+              }
+            ],
+            "satisfies_constraints": [],
+            "explanation": "",
+            "proposed_by": "mock",
+            "proposal_id": "eb9ff031-df28-4c46-9bfe-65097e38457c",
+            "created_at": "2026-05-26T21:24:03+00:00",
+            "rationale": "Deliberately unsafe candidate: tests the validator's rejection path against the no_auto_unlock and rule_must_explain constraints."
+          },
+          {
+            "id": "r_heating_cold",
+            "name": "Activate Heating When Cold",
+            "trigger": {
+              "device": "thermostat",
+              "event": "temperature_below_threshold"
+            },
+            "conditions": [
+              {
+                "type": "device_state",
+                "device": "ac",
+                "state": "off"
+              },
+              {
+                "type": "mode_not",
+                "mode": "security"
+              }
+            ],
+            "actions": [
+              {
+                "device": "heating",
+                "action": "turn_on"
+              }
+            ],
+            "satisfies_constraints": [
+              "no_hvac_conflict",
+              "security_override"
+            ],
+            "explanation": "Activates heating only when AC is confirmed off (prevents HVAC conflict) and only when the system is not in security mode.",
+            "proposed_by": "mock",
+            "proposal_id": "eb9ff031-df28-4c46-9bfe-65097e38457c",
+            "created_at": "2026-05-26T21:24:03+00:00",
+            "rationale": "Heating activation must be gated on AC being off to honor no_hvac_conflict, and disabled in security mode to honor security_override."
+          }
+        ]
+      }
+    },
+    "state": {
+      "source": "C:\\Users\\markj\\AppData\\Local\\Temp\\dtaifm-demo-5iub7ux4\\state.json",
+      "hash": "sha256:e66969589e39edd07d0cef7e6a43c7d3bb069c3137781435b97bbb9e838cf7f5",
+      "content": {
+        "schema_version": "0.1",
+        "event": {
+          "device": "motion_sensor",
+          "type": "motion_detected"
+        },
+        "time": "2024-01-01T23:00:00",
+        "mode": "normal",
+        "devices": {
+          "ac": "off",
+          "heating": "off"
+        }
+      }
+    }
+  },
+  "validation": {
+    "hash": "sha256:8cf900ddc387e59216aa9eabb1063260e07609227bcf3172c8f32b358196bdae",
+    "result": {
+      "constraint_count": 5,
+      "rule_count": 3,
+      "approved_count": 2,
+      "rejected_count": 1,
+      "all_approved": false,
+      "rules": [
+        {
+          "id": "r_motion_night_light",
+          "name": "Motion-Activated Night Light",
+          "status": "approved",
+          "violations": []
+        },
+        {
+          "id": "r_auto_unlock_door",
+          "name": "Auto-Unlock on Arrival (UNSAFE)",
+          "status": "rejected",
+          "violations": [
+            {
+              "constraint_id": "no_auto_unlock",
+              "constraint_description": "Never unlock doors automatically.",
+              "reason": "Rule 'r_auto_unlock_door' performs prohibited action 'unlock' on device 'front_door'."
+            },
+            {
+              "constraint_id": "rule_must_explain",
+              "constraint_description": "Every generated rule must explain which constraint it satisfies.",
+              "reason": "Rule 'r_auto_unlock_door' does not declare which constraints it satisfies."
+            }
+          ]
+        },
+        {
+          "id": "r_heating_cold",
+          "name": "Activate Heating When Cold",
+          "status": "approved",
+          "violations": []
+        }
+      ]
+    }
+  },
+  "execution": {
+    "hash": "sha256:e207abc801dd57a04db6fbcbafa0d97476d887b33ff49da4d41d51fd743820a9",
+    "result": {
+      "event": {
+        "device": "motion_sensor",
+        "type": "motion_detected"
+      },
+      "triggered_rule_ids": [
+        "r_motion_night_light"
+      ],
+      "skipped_rule_ids": [
+        "r_heating_cold"
+      ],
+      "actions_taken": [
+        {
+          "rule_id": "r_motion_night_light",
+          "device": "hallway_light",
+          "action": "turn_on",
+          "parameters": {
+            "duration": 300
+          }
+        }
+      ],
+      "state_delta": {
+        "hallway_light": "turn_on"
+      },
+      "trace": [
+        {
+          "rule_id": "r_motion_night_light",
+          "matched_trigger": true,
+          "fired": true,
+          "reason": "trigger matched and all conditions passed",
+          "conditions_evaluated": [
+            {
+              "type": "time_range",
+              "parameters": {
+                "start_hour": 22,
+                "end_hour": 6
+              },
+              "passed": true
+            },
+            {
+              "type": "mode_not",
+              "parameters": {
+                "mode": "security"
+              },
+              "passed": true
+            }
+          ]
+        },
+        {
+          "rule_id": "r_heating_cold",
+          "matched_trigger": false,
+          "fired": false,
+          "reason": "trigger did not match (rule expects thermostat.temperature_below_threshold)",
+          "conditions_evaluated": []
+        }
+      ]
+    }
+  }
+}

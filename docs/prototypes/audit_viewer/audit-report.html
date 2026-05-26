@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dtaifm audit report &mdash; smart_home</title>
+<style>
+  :root { --ok:#1a7f37; --bad:#b60205; --muted:#6e7781; --line:#d0d7de; --bg:#f6f8fa; }
+  * { box-sizing:border-box; }
+  body { font:15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; margin:0; color:#1f2328; }
+  .wrap { max-width:920px; margin:0 auto; padding:24px; }
+  .proto { background:#fff8c5; border:1px solid #d4a72c; border-radius:6px; padding:10px 14px; font-size:13px; }
+  h1 { font-size:22px; margin:18px 0 2px; }
+  h2 { font-size:16px; margin:26px 0 8px; border-bottom:1px solid var(--line); padding-bottom:4px; }
+  .sub { color:var(--muted); font-size:13px; }
+  .card { background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:12px 16px; margin:8px 0; }
+  .badge { display:inline-block; font-size:11px; font-weight:600; padding:1px 7px; border-radius:10px; color:#fff; }
+  .badge.ok { background:var(--ok); } .badge.bad { background:var(--bad); } .badge.muted { background:var(--muted); }
+  .rule, .trace { padding:6px 0; border-bottom:1px dashed var(--line); }
+  .violations, .conds { margin:4px 0 4px 18px; color:#57606a; font-size:13px; }
+  .muted { color:var(--muted); }
+  code { background:rgba(175,184,193,.2); padding:.1em .3em; border-radius:4px; font-size:12px; }
+  table { border-collapse:collapse; width:100%; font-size:13px; }
+  td { border-bottom:1px solid var(--line); padding:4px 6px; vertical-align:top; }
+  td:first-child { width:120px; color:var(--muted); }
+  .grid { display:flex; gap:18px; flex-wrap:wrap; }
+  .grid div { flex:1; min-width:140px; }
+  .num { font-size:22px; font-weight:700; }
+</style></head>
+<body><div class="wrap">
+
+<div class="proto"><strong>Static audit-viewer prototype</strong> &middot; design issue
+  <a href="https://github.com/dtaifm/dtaifm/issues/17">#17</a>. Read-only visualization of a
+  <code>.dtaifm-review.json</code> bundle &mdash; <strong>no execution, no teacher, no mutation</strong>.
+  Not a supported UI surface.</div>
+
+<h1>dtaifm audit report</h1>
+<p class="sub">domain <strong>smart_home</strong> v0.1 &middot;
+  bundle 0.1 &middot; framework 0.1.2 &middot;
+  schema 0.1 &middot; created 2026-05-26T21:24:03+00:00</p>
+
+<div class="card"><span class="badge ok">REPLAY</span> PASSED — deterministic replay reproduced every hash</div>
+
+<div class="card grid">
+  <div><div class="num">2</div><div class="sub">approved</div></div>
+  <div><div class="num">1</div><div class="sub">rejected</div></div>
+  <div><div class="num">1</div><div class="sub">rules fired</div></div>
+</div>
+
+<h2>Proposals</h2><ul><li><code>eb9ff031-df28-4c46-9bfe-65097e38457c</code> &middot; proposed_by <strong>mock</strong> &middot; 3 rule(s) &middot; 2026-05-26T21:24:03+00:00</li></ul>
+
+<h2>Approved rules</h2><div class="rule ok"><span class="badge ok">APPROVED</span> <code>r_motion_night_light</code> &mdash; Motion-Activated Night Light
+</div>
+<div class="rule ok"><span class="badge ok">APPROVED</span> <code>r_heating_cold</code> &mdash; Activate Heating When Cold
+</div>
+<h2>Rejected rules &amp; violations</h2><div class="rule bad"><span class="badge bad">REJECTED</span> <code>r_auto_unlock_door</code> &mdash; Auto-Unlock on Arrival (UNSAFE)
+<ul class="violations">
+<li><code>no_auto_unlock</code>: Rule &#x27;r_auto_unlock_door&#x27; performs prohibited action &#x27;unlock&#x27; on device &#x27;front_door&#x27;.</li>
+<li><code>rule_must_explain</code>: Rule &#x27;r_auto_unlock_door&#x27; does not declare which constraints it satisfies.</li>
+</ul>
+</div>
+
+<h2>Execution &mdash; motion_sensor.motion_detected</h2>
+<p class="sub">triggered: [&#x27;r_motion_night_light&#x27;]</p>
+<strong>Actions taken</strong><ul><li><code>r_motion_night_light</code> &rarr; hallway_light.turn_on {&#x27;duration&#x27;: 300}</li></ul>
+<strong>Trace</strong><div class="trace ok"><span class="badge ok">FIRED</span> <code>r_motion_night_light</code> &mdash; trigger matched and all conditions passed
+<ul class="conds">
+<li><code>time_range</code> {&#x27;start_hour&#x27;: 22, &#x27;end_hour&#x27;: 6} &rarr; <span class="badge ok">PASS</span></li>
+<li><code>mode_not</code> {&#x27;mode&#x27;: &#x27;security&#x27;} &rarr; <span class="badge ok">PASS</span></li>
+</ul>
+</div>
+<div class="trace muted"><span class="badge muted">SKIPPED</span> <code>r_heating_cold</code> &mdash; trigger did not match (rule expects thermostat.temperature_below_threshold)
+</div>
+
+<h2>Hashes (tamper-evident; <code>sha256</code> over canonical JSON)</h2>
+<table><tr><td>constraints</td><td><code>sha256:2377ea70ac2e65b5cd301e3755f65a03a2d180ee49d37083bef498026bc5ca86</code></td></tr><tr><td>rules</td><td><code>sha256:16592e799b330c98900199ccf15e9310b72eb63cbc2db06ad212ff945fa3d3a4</code></td></tr><tr><td>state</td><td><code>sha256:e66969589e39edd07d0cef7e6a43c7d3bb069c3137781435b97bbb9e838cf7f5</code></td></tr><tr><td>validation</td><td><code>sha256:8cf900ddc387e59216aa9eabb1063260e07609227bcf3172c8f32b358196bdae</code></td></tr><tr><td>execution</td><td><code>sha256:e207abc801dd57a04db6fbcbafa0d97476d887b33ff49da4d41d51fd743820a9</code></td></tr></table>
+
+<p class="sub" style="margin-top:28px">Generated by <code>generate_report.py</code> (stdlib only) from a
+  checked-in bundle produced by <code>dtaifm demo smart_home</code>. Regenerate:
+  <code>python generate_report.py</code>.</p>
+
+</div></body></html>
