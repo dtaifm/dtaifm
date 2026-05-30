@@ -692,7 +692,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_propose.add_argument(
         "--model",
         default=None,
-        help="Model identifier passed to the teacher (e.g. 'llama3.2', 'Qwen3-0.6B-GGUF', 'claude-sonnet-4-6').",
+        help="Model identifier passed to the teacher (e.g. 'llama3.2', 'Qwen3-0.6B-GGUF', 'claude-sonnet-4-6', 'gpt-5.5').",
     )
     p_propose.add_argument(
         "--teacher-timeout",

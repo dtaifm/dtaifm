@@ -9,11 +9,11 @@ The full milestone list is in [CHANGELOG.md](../CHANGELOG.md). Headline capabili
 - Three-layer architecture: teacher → validator → runtime.
 - Built-in constraint types and a domain pack registry.
 - Two domain packs that demonstrate the pattern (`smart_home`, `network_automation`) and a starting template (`examples/custom_domain_template/`).
-- Teacher adapters: `mock`, `anthropic` (optional extra), `ollama`, `lemonade`.
+- Teacher adapters: `mock`, `anthropic` (optional extra), `openai` (optional extra), `ollama`, `lemonade`.
 - Audit bundles with canonical-JSON SHA-256 hashes; `dtaifm replay` for deterministic reproducibility.
 - Reproposal loop: `dtaifm feedback` produces validator-only feedback, `dtaifm repropose` lets any teacher revise without weakening the trust boundary.
 - `dtaifm demo <domain>` walkthrough.
-- 268 tests, fully offline, no API keys.
+- 324 tests, fully offline, no API keys.
 
 ## Near-term — community-shaped
 
@@ -21,7 +21,6 @@ These are ideas, not commitments. Each is reasonably scoped for a contributor.
 
 ### Teacher adapters
 
-- **OpenAI adapter** (`dtaifm[openai]`). Use structured outputs / function calling for the same strict-parse contract as the Anthropic adapter. Should drop in alongside `anthropic`, `ollama`, `lemonade` with no domain logic.
 - **vLLM / TGI adapters.** Same shape as the local HTTP adapters; mostly a base-URL + payload-shape change.
 - **HuggingFace-Inference adapter.** Probably as another optional extra.
 

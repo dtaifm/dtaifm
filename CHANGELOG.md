@@ -3,6 +3,21 @@
 All notable changes to this project are tracked here. The project follows
 semantic versioning once it leaves alpha.
 
+## [Unreleased]
+
+### OpenAI teacher adapter (optional extra)
+
+- New `openai` teacher behind the `dtaifm[openai]` optional extra, beside `anthropic`, `ollama`, and `lemonade`. Registered as `--teacher openai`.
+- Calls OpenAI's **Responses API** (`client.responses.create`) and requests **Structured Outputs** via a `json_schema` `text.format`; the returned text is routed through the same strict parser (`parse_provider_text`) as every other adapter — the adapter only translates, it never validates or executes.
+- The Structured-Outputs schema is sent in **non-strict** mode by design: strict mode requires `additionalProperties: false` on every object, which would forbid dtaifm's open-ended action `parameters` and per-type condition fields. Non-strict steers structure while the deterministic parser stays the authoritative gate.
+- Requires `OPENAI_API_KEY`; honours `OPENAI_MODEL`; `--model` overrides env and default. Default model: `gpt-5.5`.
+- Missing SDK and missing key each fail with a clear hint (`pip install 'dtaifm[openai]'` / `OPENAI_API_KEY`, exit 2). `dtaifm teachers` lists `openai` as `cloud_sdk`; `dtaifm prompt --teacher openai` needs no key.
+- Unit tests inject a fake client — no live OpenAI calls in CI. Raw provider output stays diagnostic-only (never serialized into proposed/reproposed rule files or audit bundles).
+
+### Tests
+
+- Full suite: **324 passed**.
+
 ## [0.1.2] — 2026-05-26
 
 Additive release: external domain discovery, a clarified (and regression-tested) raw-output contract, and concepts-doc closeout. No trust-boundary or rule-schema changes.

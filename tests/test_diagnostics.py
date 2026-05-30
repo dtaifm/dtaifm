@@ -59,6 +59,13 @@ def test_describe_teacher_anthropic_reports_required_env_and_extra():
     assert info["requires_extra"] == "dtaifm[anthropic]"
 
 
+def test_describe_teacher_openai_reports_required_env_and_extra():
+    info = describe_teacher("openai")
+    assert info["kind"] == "cloud_sdk"
+    assert info["requires_env"] == "OPENAI_API_KEY"
+    assert info["requires_extra"] == "dtaifm[openai]"
+
+
 def test_describe_teacher_ollama_default_base_url(monkeypatch):
     monkeypatch.delenv("DTAIFM_OLLAMA_BASE_URL", raising=False)
     info = describe_teacher("ollama")
@@ -81,7 +88,7 @@ def test_describe_teacher_lemonade_env_override(monkeypatch):
 def test_describe_all_lists_every_registered_teacher():
     infos = describe_all()
     names = {i["name"] for i in infos}
-    assert {"mock", "anthropic", "ollama", "lemonade"}.issubset(names)
+    assert {"mock", "anthropic", "openai", "ollama", "lemonade"}.issubset(names)
 
 
 def test_describe_all_without_check_does_not_use_http_client():
@@ -105,6 +112,7 @@ def test_describe_all_check_pings_each_local_endpoint(monkeypatch):
     # Cloud and builtin teachers are NOT pinged
     assert by_name["mock"].get("status") == "registered"
     assert by_name["anthropic"].get("status") == "registered"
+    assert by_name["openai"].get("status") == "registered"
 
 
 def test_describe_all_check_reports_offline_gracefully():
@@ -145,7 +153,7 @@ def test_describe_all_check_uses_configured_base_url(monkeypatch):
 def test_format_teachers_text_lists_each_teacher():
     infos = describe_all()
     text = format_teachers_text(infos)
-    for name in ("mock", "anthropic", "ollama", "lemonade"):
+    for name in ("mock", "anthropic", "openai", "ollama", "lemonade"):
         assert name in text
 
 
@@ -169,7 +177,7 @@ def test_cli_teachers_lists_every_teacher_without_check(capsys):
     exit_code = main(["teachers"])
     assert exit_code == 0
     out = capsys.readouterr().out
-    for name in ("mock", "anthropic", "ollama", "lemonade"):
+    for name in ("mock", "anthropic", "openai", "ollama", "lemonade"):
         assert name in out
 
 
@@ -178,7 +186,7 @@ def test_cli_teachers_json_output(capsys):
     assert exit_code == 0
     infos = json.loads(capsys.readouterr().out)
     names = {i["name"] for i in infos}
-    assert {"mock", "anthropic", "ollama", "lemonade"}.issubset(names)
+    assert {"mock", "anthropic", "openai", "ollama", "lemonade"}.issubset(names)
 
 
 def test_cli_teachers_check_with_offline_servers_exits_zero(monkeypatch, capsys):

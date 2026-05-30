@@ -29,7 +29,7 @@ pip install git+https://github.com/dtaifm/dtaifm.git@v0.1.0
 git clone https://github.com/dtaifm/dtaifm
 cd dtaifm
 pip install -e ".[dev]"
-pytest                          # 268 tests, fully offline
+pytest                          # 324 tests, fully offline
 ```
 
 ## Run the built-in smart home demo

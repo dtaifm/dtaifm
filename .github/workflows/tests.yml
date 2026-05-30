@@ -110,7 +110,7 @@ jobs:
       - name: CLI teachers lists local providers (no network)
         run: |
           dtaifm teachers --json \
-            | python -c "import json,sys; d=json.load(sys.stdin); names={i['name'] for i in d}; assert {'mock','anthropic','ollama','lemonade'}.issubset(names), names"
+            | python -c "import json,sys; d=json.load(sys.stdin); names={i['name'] for i in d}; assert {'mock','anthropic','openai','ollama','lemonade'}.issubset(names), names"
 
       - name: CLI teachers --check reports offline gracefully (unreachable ports)
         env:
@@ -182,7 +182,7 @@ jobs:
         run: |
           /tmp/wheel-venv/bin/dtaifm --help
           /tmp/wheel-venv/bin/dtaifm teachers --json \
-            | python -c "import json,sys; d=json.load(sys.stdin); names={i['name'] for i in d}; assert {'mock','anthropic','ollama','lemonade'}.issubset(names)"
+            | python -c "import json,sys; d=json.load(sys.stdin); names={i['name'] for i in d}; assert {'mock','anthropic','openai','ollama','lemonade'}.issubset(names)"
 
       - name: Smoke-test installed CLI on the smart_home example
         run: |

@@ -4,13 +4,13 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.1.2-blue.svg)](CHANGELOG.md)
-[![Tests passing](https://img.shields.io/badge/tests-304%20passing-brightgreen.svg)](tests/)
+[![Tests passing](https://img.shields.io/badge/tests-324%20passing-brightgreen.svg)](tests/)
 
 **AI proposes. The deterministic layer disposes. AI output is an artifact, not an action.**
 
 dtaifm is open-source middleware for systems where AI generates candidate logic (rules, configurations, strategies) and a deterministic, constraint-verified layer has the final say. No AI output executes until it passes a human-defined constraint check.
 
-> **What dtaifm is not.** dtaifm is **not** a smart-home product or a network-automation product. `smart_home` and `network_automation` are domain packs that ship in the box to demonstrate the pattern. The framework itself is provider-agnostic (mock, Anthropic, Ollama, Lemonade, bring-your-own) and domain-agnostic (bring your own — see [`examples/custom_domain_template/`](examples/custom_domain_template/)).
+> **What dtaifm is not.** dtaifm is **not** a smart-home product or a network-automation product. `smart_home` and `network_automation` are domain packs that ship in the box to demonstrate the pattern. The framework itself is provider-agnostic (mock, Anthropic, OpenAI, Ollama, Lemonade, bring-your-own) and domain-agnostic (bring your own — see [`examples/custom_domain_template/`](examples/custom_domain_template/)).
 
 All file formats are explicitly versioned (`schema_version`) and have published JSON Schemas, so producers and consumers can evolve independently.
 
@@ -402,6 +402,22 @@ dtaifm propose constraints.yaml --teacher anthropic --domain smart_home --out pr
 
 The Anthropic SDK is **not** a core dependency. `pip install dtaifm` still works without it; an attempt to use `--teacher anthropic` without the extra installed fails with a clear install hint.
 
+### OpenAI adapter (optional extra)
+
+```bash
+pip install 'dtaifm[openai]'
+export OPENAI_API_KEY=sk-...
+
+# (optional) override the default model:
+export OPENAI_MODEL=gpt-5.4
+
+dtaifm propose constraints.yaml --teacher openai --domain smart_home --out proposed.yaml
+```
+
+The adapter calls OpenAI's **Responses API** and requests **Structured Outputs** (a `json_schema` `text.format`) so the model returns the rule envelope directly; the response text is then routed through the **same strict parser** as every other adapter. Default model: `gpt-5.5` (override with `--model` or `OPENAI_MODEL`). Like the Anthropic adapter, the OpenAI SDK is **not** a core dependency — `pip install dtaifm` still works without it, and `--teacher openai` without the extra installed fails with a clear install hint.
+
+> The schema is sent in **non-strict** mode on purpose. OpenAI's strict Structured Outputs require `additionalProperties: false` on every object, which would forbid dtaifm's open-ended action `parameters` and per-type condition fields. The non-strict schema steers structure while the deterministic parser stays the authoritative gate — the adapter only translates.
+
 ### Local teachers — Ollama and Lemonade (no API keys)
 
 Both adapters speak plain JSON over HTTP via stdlib — no extra install required. Defaults:
@@ -509,7 +525,7 @@ register_teacher("custom", CustomTeacher)
 # Install with dev tools (pytest, jsonschema, ruff, build)
 pip install -e ".[dev]"
 
-# Run the test suite (304 tests, fully offline, no API keys)
+# Run the test suite (324 tests, fully offline, no API keys)
 pytest
 
 # Lint and format
@@ -552,7 +568,7 @@ Optional type checking (`mypy dtaifm`) is supported but not enforced in CI.
 - [x] `dtaifm teachers` / `dtaifm teachers --check` connectivity diagnostics
 - [x] Deterministic feedback artifacts (`dtaifm feedback`) — validation-only, no execution
 - [x] Reproposal loop (`dtaifm repropose`) — teachers consume named violations through the same `TeacherRequest` contract; the revision is written but not validated/executed
-- [ ] OpenAI teacher adapter (optional extra)
+- [x] OpenAI teacher adapter (optional extra) — Responses API + Structured Outputs
 - [ ] Persistent audit log of every propose → validate → execute cycle
 - [ ] Telecom / network automation example
 - [ ] Rust/WASM deterministic runtime

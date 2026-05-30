@@ -62,6 +62,11 @@ def _make_anthropic(*, model: str | None = None, **_: Any) -> Teacher:
     return AnthropicTeacher(model=model)
 
 
+def _make_openai(*, model: str | None = None, **_: Any) -> Teacher:
+    from dtaifm.teacher.adapters.openai_adapter import OpenAITeacher
+    return OpenAITeacher(model=model)
+
+
 def _make_ollama(
     *,
     model: str | None = None,
@@ -86,5 +91,6 @@ def _make_lemonade(
 
 register_teacher("mock", _make_mock)
 register_teacher("anthropic", _make_anthropic)
+register_teacher("openai", _make_openai)
 register_teacher("ollama", _make_ollama)
 register_teacher("lemonade", _make_lemonade)

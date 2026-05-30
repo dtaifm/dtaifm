@@ -32,6 +32,14 @@ _LOCAL_PROVIDERS = {
 }
 
 
+# Cloud SDK adapters: backed by a provider SDK behind an optional extra, gated on
+# an API key. No endpoint to ping, so --check leaves them as "registered".
+_CLOUD_PROVIDERS = {
+    "anthropic": {"requires_env": "ANTHROPIC_API_KEY", "requires_extra": "dtaifm[anthropic]"},
+    "openai": {"requires_env": "OPENAI_API_KEY", "requires_extra": "dtaifm[openai]"},
+}
+
+
 def describe_teacher(name: str, *, check: bool = False, http_client: Any | None = None) -> dict:
     info: dict = {"name": name}
 
@@ -48,11 +56,12 @@ def describe_teacher(name: str, *, check: bool = False, http_client: Any | None 
             info.update(_check_local_endpoint(base_url + cfg["check_path"], cfg, http_client))
         else:
             info["status"] = "registered"
-    elif name == "anthropic":
+    elif name in _CLOUD_PROVIDERS:
+        cfg = _CLOUD_PROVIDERS[name]
         info.update({
             "kind": "cloud_sdk",
-            "requires_env": "ANTHROPIC_API_KEY",
-            "requires_extra": "dtaifm[anthropic]",
+            "requires_env": cfg["requires_env"],
+            "requires_extra": cfg["requires_extra"],
             "status": "registered",
         })
     else:

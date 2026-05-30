@@ -250,6 +250,14 @@ def test_prompt_command_works_with_anthropic_teacher_without_api_key(monkeypatch
     assert "no_auto_unlock" in capsys.readouterr().out
 
 
+def test_prompt_command_works_with_openai_teacher_without_api_key(monkeypatch, capsys):
+    # Same contract for the cloud OpenAI adapter: rendering the prompt needs no key.
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    exit_code = main(["prompt", CONSTRAINTS, "--teacher", "openai"])
+    assert exit_code == 0
+    assert "no_auto_unlock" in capsys.readouterr().out
+
+
 def test_prompt_command_rejects_unknown_teacher(capsys):
     exit_code = main(["prompt", CONSTRAINTS, "--teacher", "nope"])
     assert exit_code == 2
