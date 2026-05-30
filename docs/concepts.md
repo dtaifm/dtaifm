@@ -81,7 +81,7 @@ A `TeacherRequest` carries the constraints, the domain (with its vocabulary), an
 ## Trust boundary rules
 
 1. **AI output is an artifact, not an action.** Teachers never validate or execute.
-2. **Provider adapters are translators, not trusted components.** Every adapter routes output through the strict parser before returning a `RuleSet`.
+2. **Provider adapters are translators, not trusted components.** Every adapter routes output through the strict parser, which validates response **shape/schema and required provenance** (e.g. a non-empty `satisfies_constraints` and `rationale`) — not domain vocabulary. Whether a rule's triggers, conditions, or actions are legal for the active domain is enforced by the Validator (see rule 3).
 3. **Domains define what is possible; teachers only propose within that boundary.** The validator rejects rules using out-of-vocabulary triggers, conditions, or actions; the runtime double-checks at execution time.
 4. **Provider dependencies stay optional.** `pip install dtaifm` works without any LLM SDK.
 5. **Replay is deterministic.** Bundles use canonical-JSON SHA-256 hashes; replay reproduces exactly or fails clearly.
