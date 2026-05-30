@@ -63,7 +63,7 @@ dtaifm demo smart_home --json                              # machine-readable
 | Diagnostics | `dtaifm teachers --check` |
 | Demo | `dtaifm demo <domain>` walks the full pipeline in under a minute |
 | Schema versioning | `schema_version: "0.1"` on every file; published JSON Schemas via `dtaifm schema {constraints|rules|state}` |
-| Tests | 324 tests, fully offline, no API keys required |
+| Tests | 327 tests, fully offline, no API keys required |
 
 ## How to evaluate it in 10 minutes
 

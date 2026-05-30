@@ -5,6 +5,18 @@ semantic versioning once it leaves alpha.
 
 ## [Unreleased]
 
+## [0.1.4] — 2026-05-31
+
+Bugfix release. The teacher parser no longer rejects custom-domain condition types; the trust boundary is preserved (parser = shape/schema, validator = domain vocabulary). No rule-schema change.
+
+### Fixed
+
+- **BUG-1 (#21): teacher parser rejected custom-domain condition types.** The strict provider-response parser hardcoded the built-in condition vocabulary and rejected any other condition `type` at parse time, blocking custom domains (e.g. `host_class` for a `ttek2_crawler_gate` domain) on the propose/repropose path. The parser now checks **shape only** (a condition must be an object with a `type`); domain vocabulary is enforced downstream by the Validator against the active domain (`domain.condition_types`), which already did so. `KNOWN_CONDITION_TYPES` is retained and still exported but is no longer enforced by the parser. Trigger/action parsing was already shape-only (guard test added).
+
+### Tests
+
+- Full suite: **327 passed**. Added: parser accepts an arbitrary/custom condition type; OpenAI + Anthropic fake-client adapters accept a `host_class` proposal; validator accepts `host_class` when the active domain includes it and rejects it when not.
+
 ## [0.1.3] — 2026-05-30
 
 ### OpenAI teacher adapter (optional extra)
@@ -90,5 +102,6 @@ Post-launch dogfooding fixes discovered while running `dtaifm demo` against a re
 ### Launch
 - **Milestone 10** — `dtaifm demo <domain>` launch-grade walkthrough (`propose → review → bundle → replay → inspect`, fully offline by default via mock teacher); bundled demo fixtures shipped inside the wheel under `dtaifm/_demo/<domain_id>/`; launch docs (`docs/launch.md`, `docs/roadmap.md`, `docs/comparison.md`, `docs/release-checklist.md`); README badges + 60-second demo section; demo smoke tests added to both the test job and the release-readiness wheel job in CI. 268 tests.
 
+[0.1.4]: https://github.com/dtaifm/dtaifm/releases/tag/v0.1.4
 [0.1.3]: https://github.com/dtaifm/dtaifm/releases/tag/v0.1.3
 [0.1.0]: https://github.com/dtaifm/dtaifm/releases/tag/v0.1.0
