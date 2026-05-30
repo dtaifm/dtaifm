@@ -8,8 +8,14 @@ a RuleSet only after asserting:
   - the top-level shape is correct
   - every rule has all required fields, including provenance (rationale) and
     a non-empty satisfies_constraints list
-  - condition types are from the known set
+  - conditions are well-formed objects (each carries a ``type``)
   - trigger and actions are well-formed
+
+The parser is deliberately domain-AGNOSTIC about vocabulary: which trigger
+events, condition types, and action kinds are legal for a given domain is
+enforced downstream by the Validator against the active Domain — never here.
+Shape/schema is the parser's job; domain vocabulary and policy are the
+validator's. (See BUG-1 / issue #21.)
 
 Any deviation raises ProviderResponseError with a precise location and reason.
 """
@@ -27,6 +33,11 @@ class ProviderResponseError(ValueError):
     """Raised when a provider returns an unparseable or non-compliant response."""
 
 
+# The framework's built-in condition types (the generic / smart_home vocabulary).
+# Retained for reference and backward compatibility ONLY — the parser does NOT
+# enforce it. Condition vocabulary is validated per-domain by the Validator
+# (domain.condition_types); a custom domain may use any condition type it
+# declares (e.g. `host_class`). See BUG-1 / issue #21.
 KNOWN_CONDITION_TYPES: frozenset[str] = frozenset(
     {"time_range", "mode_not", "mode_is", "device_state"}
 )
@@ -112,11 +123,9 @@ def _parse_rule(data: Any, *, source: str, index: int) -> Rule:
     for j, condition in enumerate(conditions):
         if not isinstance(condition, dict) or "type" not in condition:
             raise ProviderResponseError(f"{ctx} conditions[{j}] must be an object with 'type'")
-        if condition["type"] not in KNOWN_CONDITION_TYPES:
-            raise ProviderResponseError(
-                f"{ctx} conditions[{j}] has unknown type {condition['type']!r}. "
-                f"Known: {sorted(KNOWN_CONDITION_TYPES)}"
-            )
+        # Shape only. Whether `type` is a legal condition for the active domain is
+        # the Validator's job (domain.condition_types) — not the parser's. The
+        # parser must not reject a custom domain's condition type. See BUG-1 / #21.
 
     return Rule.from_dict(data)
 

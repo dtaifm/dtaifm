@@ -132,12 +132,27 @@ def test_parser_rejects_action_missing_action_key():
         parse_provider_payload(payload, source="test")
 
 
-def test_parser_rejects_unknown_condition_type():
+def test_parser_accepts_arbitrary_condition_type():
+    # Domain-agnostic vocabulary: a custom domain's condition type (e.g. host_class
+    # for ttek2_crawler_gate) must parse. Whether it is legal for the active domain
+    # is the Validator's job, not the parser's. (BUG-1 / #21)
     rule = _valid_rule()
-    rule["conditions"] = [{"type": "exotic_condition_kind", "value": 1}]
+    rule["conditions"] = [{"type": "host_class", "class": "search_engine"}]
     payload = {"schema_version": SCHEMA_VERSION, "rules": [rule]}
-    with pytest.raises(ProviderResponseError, match="unknown type 'exotic_condition_kind'"):
-        parse_provider_payload(payload, source="test")
+    rs = parse_provider_payload(payload, source="test")
+    assert [c.type for c in next(iter(rs)).conditions] == ["host_class"]
+
+
+def test_parser_does_not_hardcode_trigger_or_action_vocabulary():
+    # Triggers and actions are shape-only too: a custom domain's trigger event and
+    # action kind must parse. Domain vocabulary is enforced by the Validator. (#21)
+    rule = _valid_rule()
+    rule["trigger"] = {"device": "crawler_gate", "event": "crawl_requested"}
+    rule["actions"] = [{"device": "crawler_gate", "action": "allow_with_rate_limit"}]
+    payload = {"schema_version": SCHEMA_VERSION, "rules": [rule]}
+    parsed = next(iter(parse_provider_payload(payload, source="test")))
+    assert parsed.trigger.event == "crawl_requested"
+    assert parsed.actions[0].action == "allow_with_rate_limit"
 
 
 def test_parser_accepts_all_known_condition_types():

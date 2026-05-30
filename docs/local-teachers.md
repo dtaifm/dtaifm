@@ -63,7 +63,7 @@ dtaifm teachers --json   # machine-readable
 Every adapter routes model output through `parse_provider_text` → `parse_provider_payload`. The same rules apply across cloud and local:
 
 - Narration outside the JSON block is ignored (fenced ` ```json ` or bare `{ ... }` both work).
-- Missing `rationale`, empty `satisfies_constraints`, or unknown condition types fail at parse time.
+- Missing `rationale` or an empty `satisfies_constraints` list fail at parse time. Condition/trigger/action **vocabulary is not checked here** — that is the Validator's job against the active domain, so a custom domain's types pass the parser and are validated downstream.
 - Connection failures surface as `RuntimeError("teacher: failed to reach <url>: ...")`.
 
 ## Trust note
