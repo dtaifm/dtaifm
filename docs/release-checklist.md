@@ -51,7 +51,7 @@ python -m venv /tmp/dtaifm-smoke
 /tmp/dtaifm-smoke/bin/dtaifm teachers --json | python -c "
 import json, sys
 d = json.load(sys.stdin)
-assert {'mock','anthropic','ollama','lemonade'}.issubset({i['name'] for i in d})
+assert {'mock','anthropic','openai','ollama','lemonade'}.issubset({i['name'] for i in d})
 print('teachers OK')
 "
 ```

@@ -2,7 +2,7 @@
 
 > The deterministic layer may teach the teacher, but it never lets the teacher grade itself.
 
-Teachers rarely produce a perfect first proposal. The reproposal loop lets any teacher (mock, Anthropic, Ollama, Lemonade, custom) consume the validator's deterministic violation reasons and try again — without weakening the trust boundary.
+Teachers rarely produce a perfect first proposal. The reproposal loop lets any teacher (mock, Anthropic, OpenAI, Ollama, Lemonade, custom) consume the validator's deterministic violation reasons and try again — without weakening the trust boundary.
 
 ## The loop
 

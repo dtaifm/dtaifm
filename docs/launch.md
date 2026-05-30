@@ -57,13 +57,13 @@ dtaifm demo smart_home --json                              # machine-readable
 | Core primitives | `Constraint`, `Rule`, `RuleSet`, `ValidationResult`, `ExecutionResult` |
 | Built-in constraint types | `absolute_prohibition`, `mutual_exclusion`, `temporal_restriction`, `mode_override`, `metadata_requirement` |
 | Domain packs | `smart_home`, `network_automation` (+ extensible registry) |
-| Teacher adapters | `mock`, `anthropic` (optional extra), `ollama`, `lemonade` |
+| Teacher adapters | `mock`, `anthropic` (optional extra), `openai` (optional extra), `ollama`, `lemonade` |
 | Audit | `dtaifm review --bundle`, `dtaifm replay`, `dtaifm inspect`; public Python API (`from dtaifm import review, replay, inspect_bundle`) |
 | Reproposal loop | `dtaifm feedback`, `dtaifm repropose` (validator-only feedback; never validates the revision) |
 | Diagnostics | `dtaifm teachers --check` |
 | Demo | `dtaifm demo <domain>` walks the full pipeline in under a minute |
 | Schema versioning | `schema_version: "0.1"` on every file; published JSON Schemas via `dtaifm schema {constraints|rules|state}` |
-| Tests | 268 tests, fully offline, no API keys required |
+| Tests | 324 tests, fully offline, no API keys required |
 
 ## How to evaluate it in 10 minutes
 
