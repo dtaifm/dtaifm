@@ -30,6 +30,10 @@ These are ideas, not commitments. Each is reasonably scoped for a contributor.
 - **Financial controls.** Triggers like `transfer_requested`; actions like `approve`, `hold`, `require_dual_approval`. Constraints around amount limits and counterparty rules.
 - **CI/CD policy.** Triggers like `deployment_requested`; actions like `proceed`, `require_canary`, `block`. Constraints around environments, change windows, and rollback requirements.
 
+### Agent ingress & tool-use governance
+
+- **Prompt-injection / untrusted-content gate.** Explore a domain pack for agents that read web pages, search results, emails, documents, or other untrusted inputs. The goal is not to make dtaifm an LLM orchestrator or a second LLM judge; it is to validate structured artifacts about proposed downstream actions before tools execute. Example constraints: external content may not override trusted instructions, request secrets, trigger writes/purchases/logins, or authorize tool calls not traceable to the original user request.
+
 ### Audit & trust
 
 - **Persistent audit log.** Append-only store for every `propose → validate → execute` cycle. A "git for AI proposals."
@@ -55,6 +59,7 @@ These are ideas, not commitments. Each is reasonably scoped for a contributor.
 ## What is explicitly out of scope
 
 - General LLM orchestration (chains, agents, RAG pipelines). dtaifm is middleware that sits below an orchestrator if you have one.
+- Prompt-injection defense as opaque LLM judgment. Any ingress/tool-use work must preserve the existing contract: untrusted content or AI proposes a structured artifact; deterministic policy approves, rejects, or requires confirmation.
 - Domain-specific business logic in the core framework. If a domain needs custom evaluators, they belong in a domain pack, not in `dtaifm/student/validator.py`.
 - A specific provider's prompt format leaking into the shared prompt template. Adapters may override `Teacher.render_prompt` if absolutely necessary.
 - Any feature that would let an AI teacher bypass the validator. The trust boundary is the product.
