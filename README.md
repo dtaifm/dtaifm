@@ -1,5 +1,7 @@
 # dtaifm — Deterministic-first Teaching AI Framework Middleware
 
+*A deterministic gate for AI-proposed actions: the model suggests, your constraints decide, nothing executes unapproved.*
+
 [![tests](https://github.com/dtaifm/dtaifm/actions/workflows/tests.yml/badge.svg)](https://github.com/dtaifm/dtaifm/actions/workflows/tests.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -8,7 +10,13 @@
 
 **AI proposes. The deterministic layer disposes. AI output is an artifact, not an action.**
 
-dtaifm is open-source middleware for systems where AI generates candidate logic (rules, configurations, strategies) and a deterministic, constraint-verified layer has the final say. No AI output executes until it passes a human-defined constraint check.
+dtaifm is open-source middleware for systems where AI generates candidate logic (rules, configurations, strategies) and a deterministic, constraint-verified layer has the final say. No AI output executes until it passes a human-defined constraint check. dtaifm names the two roles the **teacher** (the AI that proposes) and the **student** (the deterministic validator that approves, rejects, or asks for a revision).
+
+**Use it when** an AI — or any untrusted producer — proposes actions you can't let run unchecked:
+
+- Gate an **AI agent's tool calls**: allow read-only, reject out-of-scope, require human approval for writes/purchases/logins.
+- Validate **AI-proposed config, policy, or IAM changes** against hard constraints before they apply.
+- Ratify **LLM-generated rules or automations** before they execute — with a portable, replayable audit trail.
 
 > **What dtaifm is not.** dtaifm is **not** a smart-home product or a network-automation product. `smart_home` and `network_automation` are domain packs that ship in the box to demonstrate the pattern. The framework itself is provider-agnostic (mock, Anthropic, OpenAI, Ollama, Lemonade, bring-your-own) and domain-agnostic (bring your own — see [`examples/custom_domain_template/`](examples/custom_domain_template/)).
 
@@ -27,7 +35,7 @@ dtaifm demo smart_home
 
 That single command walks the entire pipeline — `propose → validate → execute → bundle → replay` — and prints a step-by-step report ending in `RESULT: PASSED`. Runs fully offline using the mock teacher; no API key needed.
 
-> **Alternate source install** — if you want to develop against the latest `main`, install from GitHub instead: `pip install git+https://github.com/dtaifm/dtaifm.git`. For pinned source installs, append `@v0.1.0` (or any tag).
+> **Alternate source install** — if you want to develop against the latest `main`, install from GitHub instead: `pip install git+https://github.com/dtaifm/dtaifm.git`. For pinned source installs, append the release tag you want (e.g. `@v0.1.4`).
 
 Want to see the second built-in domain or a local LLM driving it?
 
@@ -67,7 +75,7 @@ Raw LLMs in production systems hallucinate. They are unpredictable at edge cases
   Constraints (YAML)           ← defined by humans; never changed by AI
         │
         ▼
-  Teacher.propose_rules()      ← AI model or mock; returns a candidate RuleSet
+  Teacher.propose()            ← AI model or mock; returns a candidate RuleSet
         │
         ▼
   Validator.validate_ruleset() ← deterministic; approves or rejects each rule
@@ -460,7 +468,7 @@ dtaifm teachers --json    # machine-readable
 
 ## Reproposal Loop
 
-Teachers rarely produce a perfect first proposal. The reproposal loop lets any teacher (mock, Anthropic, Ollama, Lemonade) consume the validator's deterministic violation reasons and try again — without weakening the trust boundary.
+Teachers rarely produce a perfect first proposal. The reproposal loop lets any teacher (mock, Anthropic, OpenAI, Ollama, Lemonade) consume the validator's deterministic violation reasons and try again — without weakening the trust boundary.
 
 ```bash
 # 1. The teacher's first attempt
@@ -570,7 +578,6 @@ Optional type checking (`mypy dtaifm`) is supported but not enforced in CI.
 - [x] Reproposal loop (`dtaifm repropose`) — teachers consume named violations through the same `TeacherRequest` contract; the revision is written but not validated/executed
 - [x] OpenAI teacher adapter (optional extra) — Responses API + Structured Outputs
 - [ ] Persistent audit log of every propose → validate → execute cycle
-- [ ] Telecom / network automation example
 - [ ] Rust/WASM deterministic runtime
 
 ## Contributing
