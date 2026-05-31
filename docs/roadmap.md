@@ -78,7 +78,7 @@ These are ideas, not commitments. Each is reasonably scoped for a contributor.
 - **Rust/WASM runtime.** A second runtime implementation that loads approved rules into WebAssembly for safe execution at the edge.
 - **Streaming runtime.** Multi-event windows, sliding-window conditions; today the runtime is event-at-a-time.
 - **Distributed validator.** Sharded constraint sets for very large domains.
-- **Web UI.** Read-only at first — browse bundles, diff reviews, inspect violation reasons. Never an execution surface.
+- **Dashboard / policy console.** Read-only at first: browse audit bundles and replay status, diff reviews, inspect violations and traces, monitor teacher/adapter status, and view domain-pack versions. Later configuration surfaces may manage domains, constraints, policy packs, approval workflows, and report exports, but all changes must be deterministic, versioned, and auditable. Never an execution surface.
 
 ## What is explicitly out of scope
 
@@ -88,6 +88,7 @@ These are ideas, not commitments. Each is reasonably scoped for a contributor.
 - A specific provider's prompt format leaking into the shared prompt template. Adapters may override `Teacher.render_prompt` if absolutely necessary.
 - Any feature that would let an AI teacher bypass the validator. The trust boundary is the product.
 - Offensive capability as a product feature. Cybersecurity use cases should govern authorization, scope, evidence, and audit around tools the adopter already controls.
+- A dashboard as an agent control surface. Any UI should manage artifacts, constraints, approvals, and audit visibility; execution remains behind the deterministic runtime and adopter-controlled systems.
 
 ## How to influence the roadmap
 
