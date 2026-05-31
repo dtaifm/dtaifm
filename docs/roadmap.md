@@ -44,11 +44,25 @@ These are ideas, not commitments. Each is reasonably scoped for a contributor.
 - **Cloud/IAM policy guard.** Validate AI-proposed IAM, firewall, or security-group changes against least-privilege constraints: no wildcard privilege, no public exposure unless approved, expiry required, and environment boundaries enforced.
 - **Phishing-simulation governance.** Validate campaign proposals against approved recipient groups, disclosure rules, credential-handling rules, legal/compliance approvals, and rate limits.
 
+### Enterprise governance primitives
+
+- **Approval workflow / human sign-off.** Support rule outcomes beyond approve/reject, such as `requires_approval`, with reason codes and reviewer metadata. Useful for enterprise change control without letting an AI bypass the validator.
+- **Domain-state attestations.** First-class pattern for cases where an external authority computes facts or metrics and dtaifm validates the attested result rather than recomputing it. The attestation remains an input artifact; deterministic constraints decide whether proposed rules may rely on it.
+- **Policy simulation / what-if.** Run proposed rules against many synthetic states/events and summarize which constraints fire, which rules would execute, and where policy gaps appear. This should remain deterministic and offline.
+- **Domain pack conformance tests.** A test harness for third-party domain packs: vocabulary coverage, required fixtures, evaluator behavior, prompt rendering, validator compatibility, and replay stability.
+- **Policy packs.** Reusable constraint sets independent of a domain, such as read-only mode, no destructive actions, business-hours only, approval required for high-risk actions, and allowlist/denylist templates.
+- **Evaluator composition.** Small deterministic evaluator combinators such as `all_of`, `any_of`, `requires`, `mutually_exclusive`, `threshold`, `allowlist`, and `denylist`, so domains can express common policy without custom code for every case.
+- **Risk labels as deterministic metadata.** Let validators attach risk labels or scores based on deterministic criteria. Risk metadata can inform review and approval workflows, but must not replace explicit approve/reject/approval-required outcomes.
+- **Multi-party approval / separation of duties.** Certain actions require approvals from different roles or systems before execution. Useful for finance, security, infrastructure, and regulated workflows.
+- **CLI report formats.** Emit Markdown or HTML reports from validation/review results for human review boards, pull requests, and change-management tickets.
+
 ### Audit & trust
 
 - **Persistent audit log.** Append-only store for every `propose → validate → execute` cycle. A "git for AI proposals."
 - **Signed bundles.** Optional Ed25519 signing on top of the existing SHA-256 hashes.
 - **Bundle diff.** `dtaifm diff a.json b.json` showing what changed across two reviews (constraint changes, rule changes, outcome changes).
+- **Bundle retention/export adapters.** Store audit bundles in S3, GCS, Azure Blob, local append-only directories, SIEM/log archives, or other adopter-controlled systems while keeping the core bundle format portable.
+- **Golden bundle regression suites.** Let adopters keep known-good bundles and replay them across framework/domain upgrades to detect semantic drift.
 
 ### Diagnostics
 
