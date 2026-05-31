@@ -34,11 +34,35 @@ These are ideas, not commitments. Each is reasonably scoped for a contributor.
 
 - **Prompt-injection / untrusted-content gate.** Explore a domain pack for agents that read web pages, search results, emails, documents, or other untrusted inputs. The goal is not to make dtaifm an LLM orchestrator or a second LLM judge; it is to validate structured artifacts about proposed downstream actions before tools execute. Example constraints: external content may not override trusted instructions, request secrets, trigger writes/purchases/logins, or authorize tool calls not traceable to the original user request.
 
+### Cybersecurity governance
+
+- **Rules-of-engagement gate for pentests.** Validate proposed red-team actions against authorized targets, time windows, allowed techniques, rate limits, prohibited destructive actions, and required approvals. dtaifm governs scope and authorization; it does not provide exploit capability.
+- **Security-agent tool-use gate.** Require AI security copilots to emit structured action proposals before running scanners, fuzzers, cloud tools, or endpoint actions. The validator can allow read-only enumeration, reject out-of-scope actions, or require human approval for write/destructive actions.
+- **Finding triage / evidence quality.** Validate AI-proposed vulnerability findings for required fields: affected asset, severity rationale, sanitized evidence, reproduction notes, confidence, and no leaked secrets.
+- **Threat-intel ingestion gate.** Treat external intel as untrusted. Validate proposed detection, blocklist, or routing changes against source confidence, TTL, allowlists, business-critical exclusions, and rollback requirements.
+- **Incident-response action gate.** Validate proposed containment or remediation steps against permitted actions, approval thresholds, evidence requirements, and critical-system escalation rules.
+- **Cloud/IAM policy guard.** Validate AI-proposed IAM, firewall, or security-group changes against least-privilege constraints: no wildcard privilege, no public exposure unless approved, expiry required, and environment boundaries enforced.
+- **Phishing-simulation governance.** Validate campaign proposals against approved recipient groups, disclosure rules, credential-handling rules, legal/compliance approvals, and rate limits.
+
+### Enterprise governance primitives
+
+- **Approval workflow / human sign-off.** Support rule outcomes beyond approve/reject, such as `requires_approval`, with reason codes and reviewer metadata. Useful for enterprise change control without letting an AI bypass the validator.
+- **Domain-state attestations.** First-class pattern for cases where an external authority computes facts or metrics and dtaifm validates the attested result rather than recomputing it. The attestation remains an input artifact; deterministic constraints decide whether proposed rules may rely on it.
+- **Policy simulation / what-if.** Run proposed rules against many synthetic states/events and summarize which constraints fire, which rules would execute, and where policy gaps appear. This should remain deterministic and offline.
+- **Domain pack conformance tests.** A test harness for third-party domain packs: vocabulary coverage, required fixtures, evaluator behavior, prompt rendering, validator compatibility, and replay stability.
+- **Policy packs.** Reusable constraint sets independent of a domain, such as read-only mode, no destructive actions, business-hours only, approval required for high-risk actions, and allowlist/denylist templates.
+- **Evaluator composition.** Small deterministic evaluator combinators such as `all_of`, `any_of`, `requires`, `mutually_exclusive`, `threshold`, `allowlist`, and `denylist`, so domains can express common policy without custom code for every case.
+- **Risk labels as deterministic metadata.** Let validators attach risk labels or scores based on deterministic criteria. Risk metadata can inform review and approval workflows, but must not replace explicit approve/reject/approval-required outcomes.
+- **Multi-party approval / separation of duties.** Certain actions require approvals from different roles or systems before execution. Useful for finance, security, infrastructure, and regulated workflows.
+- **CLI report formats.** Emit Markdown or HTML reports from validation/review results for human review boards, pull requests, and change-management tickets.
+
 ### Audit & trust
 
 - **Persistent audit log.** Append-only store for every `propose → validate → execute` cycle. A "git for AI proposals."
 - **Signed bundles.** Optional Ed25519 signing on top of the existing SHA-256 hashes.
 - **Bundle diff.** `dtaifm diff a.json b.json` showing what changed across two reviews (constraint changes, rule changes, outcome changes).
+- **Bundle retention/export adapters.** Store audit bundles in S3, GCS, Azure Blob, local append-only directories, SIEM/log archives, or other adopter-controlled systems while keeping the core bundle format portable.
+- **Golden bundle regression suites.** Let adopters keep known-good bundles and replay them across framework/domain upgrades to detect semantic drift.
 
 ### Diagnostics
 
@@ -63,6 +87,7 @@ These are ideas, not commitments. Each is reasonably scoped for a contributor.
 - Domain-specific business logic in the core framework. If a domain needs custom evaluators, they belong in a domain pack, not in `dtaifm/student/validator.py`.
 - A specific provider's prompt format leaking into the shared prompt template. Adapters may override `Teacher.render_prompt` if absolutely necessary.
 - Any feature that would let an AI teacher bypass the validator. The trust boundary is the product.
+- Offensive capability as a product feature. Cybersecurity use cases should govern authorization, scope, evidence, and audit around tools the adopter already controls.
 
 ## How to influence the roadmap
 
