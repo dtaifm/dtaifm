@@ -187,13 +187,17 @@ def test_adapter_propagates_parser_errors_for_malformed_payload():
         teacher.propose(_request())
 
 
-def test_adapter_propagates_parser_error_for_unknown_condition_type():
-    bad = _valid_ruleset_payload()
-    bad["rules"][0]["conditions"] = [{"type": "wildcard_kind"}]
-    client = _build_fake_client(json.dumps(bad))
+def test_adapter_accepts_custom_domain_condition_type():
+    # BUG-1 / #21: the parser is domain-agnostic about vocabulary, so a custom
+    # domain's condition type (host_class for ttek2_crawler_gate) must be accepted
+    # by the adapter. The Validator — not the parser — decides domain legality.
+    payload = _valid_ruleset_payload()
+    payload["rules"][0]["conditions"] = [{"type": "host_class", "class": "search_engine"}]
+    client = _build_fake_client(json.dumps(payload))
     teacher = OpenAITeacher(client=client)
-    with pytest.raises(ProviderResponseError, match="unknown type 'wildcard_kind'"):
-        teacher.propose(_request())
+    response = teacher.propose(_request())
+    rule = next(iter(response.ruleset))
+    assert [c.type for c in rule.conditions] == ["host_class"]
 
 
 def test_adapter_propagates_parser_error_for_empty_satisfies_constraints():

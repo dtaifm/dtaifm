@@ -1,6 +1,7 @@
 import pytest
 from dtaifm.core.constraint import Constraint, ConstraintType
 from dtaifm.core.rule import Action, Condition, Rule, Trigger
+from dtaifm.domains.base import Domain
 from dtaifm.student.validator import Validator
 
 
@@ -190,3 +191,48 @@ def test_ruleset_validation_splits_correctly(base_constraints):
     assert len(result.rejected) == 1
     assert result.rejected[0].rule_id == "r_bad"
     assert not result.all_approved
+
+
+# ------------------------------------------------------------------
+# Domain vocabulary is the validator's job, not the parser's (BUG-1 / #21)
+# ------------------------------------------------------------------
+
+def _crawler_gate_domain(condition_types) -> Domain:
+    return Domain(
+        id="ttek2_crawler_gate",
+        version="0.1",
+        trigger_events=frozenset({"crawl_requested"}),
+        condition_types=frozenset(condition_types),
+        action_kinds=frozenset({"allow"}),
+    )
+
+
+def _host_class_rule() -> Rule:
+    return Rule(
+        id="r_gate",
+        name="Gate by host class",
+        trigger=Trigger(device="crawler_gate", event="crawl_requested"),
+        conditions=[Condition(type="host_class", parameters={"class": "search_engine"})],
+        actions=[Action(device="crawler_gate", action="allow")],
+        satisfies_constraints=["x"],
+        explanation="Allow known search-engine crawlers.",
+    )
+
+
+def test_validator_accepts_custom_condition_when_domain_includes_it():
+    # host_class is in the active domain's vocabulary -> no domain violation.
+    validator = Validator(constraints=[], domain=_crawler_gate_domain({"host_class"}))
+    result = validator.validate_rule(_host_class_rule())
+    assert result.is_valid
+    assert result.violations == []
+
+
+def test_validator_rejects_condition_outside_active_domain():
+    # Same rule, but the active domain does NOT declare host_class -> deterministic
+    # rejection by the validator (the parser would have accepted it).
+    validator = Validator(constraints=[], domain=_crawler_gate_domain({"time_range"}))
+    result = validator.validate_rule(_host_class_rule())
+    assert result.is_rejected
+    reasons = " ".join(v.reason for v in result.violations)
+    assert "host_class" in reasons
+    assert any(v.constraint_id == Validator.DOMAIN_PSEUDO_CONSTRAINT_ID for v in result.violations)
