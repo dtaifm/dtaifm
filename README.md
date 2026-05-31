@@ -416,7 +416,7 @@ dtaifm propose constraints.yaml --teacher openai --domain smart_home --out propo
 
 The adapter calls OpenAI's **Responses API** and requests **Structured Outputs** (a `json_schema` `text.format`) so the model returns the rule envelope directly; the response text is then routed through the **same strict parser** as every other adapter. Default model: `gpt-5.5` (override with `--model` or `OPENAI_MODEL`). Like the Anthropic adapter, the OpenAI SDK is **not** a core dependency — `pip install dtaifm` still works without it, and `--teacher openai` without the extra installed fails with a clear install hint.
 
-> The schema is sent in **non-strict** mode on purpose. OpenAI's strict Structured Outputs require `additionalProperties: false` on every object, which would forbid dtaifm's open-ended action `parameters` and per-type condition fields. The non-strict schema steers structure while the deterministic parser stays the authoritative gate — the adapter only translates.
+> The schema is sent in **non-strict** mode on purpose. OpenAI's strict Structured Outputs require `additionalProperties: false` on every object, which would forbid dtaifm's open-ended action `parameters` and per-type condition fields. The non-strict schema steers structure while dtaifm preserves the trust boundary: the parser enforces response shape and required provenance fields; the Validator enforces domain vocabulary and policy against the active domain. The adapter only translates.
 
 ### Local teachers — Ollama and Lemonade (no API keys)
 
