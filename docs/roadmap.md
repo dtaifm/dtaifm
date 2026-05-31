@@ -13,7 +13,7 @@ The full milestone list is in [CHANGELOG.md](../CHANGELOG.md). Headline capabili
 - Audit bundles with canonical-JSON SHA-256 hashes; `dtaifm replay` for deterministic reproducibility.
 - Reproposal loop: `dtaifm feedback` produces validator-only feedback, `dtaifm repropose` lets any teacher revise without weakening the trust boundary.
 - `dtaifm demo <domain>` walkthrough.
-- 324 tests, fully offline, no API keys.
+- 327 tests, fully offline, no API keys.
 
 ## Near-term — community-shaped
 
