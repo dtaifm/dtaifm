@@ -5,6 +5,10 @@ semantic versioning once it leaves alpha.
 
 ## [Unreleased]
 
+## [0.1.5] — 2026-06-10
+
+Additive release: a `--version` CLI flag and `twine` in the dev extra, plus README/metadata polish. No trust-boundary or rule-schema change.
+
 ### Added
 
 - **`dtaifm --version`.** The top-level CLI now accepts `--version`, printing `dtaifm <version>` and exiting 0 — no subcommand required. Previously the installed version could only be read by importing `dtaifm.__version__` in Python.
@@ -12,6 +16,7 @@ semantic versioning once it leaves alpha.
 ### Changed
 
 - **`twine` added to the `[dev]` extra.** Release tooling (`twine check` / `twine upload`) is now provisioned by `pip install -e ".[dev]"` instead of an ad-hoc install at release time.
+- **README positioning.** Leads with the threat model and the advisor-not-executor philosophy, adds a traditional-agentic-AI vs dtaifm comparison table, and broadens PyPI keywords + adds the `Topic :: Security` classifier.
 
 ## [0.1.4] — 2026-05-31
 

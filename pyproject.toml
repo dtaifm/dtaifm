@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dtaifm"
-version = "0.1.4"
+version = "0.1.5"
 description = "A deterministic gate for AI-proposed actions: the model suggests, your constraints decide, nothing executes unapproved."
 readme = "README.md"
 requires-python = ">=3.11"
