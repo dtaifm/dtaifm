@@ -5,8 +5,8 @@
 [![tests](https://github.com/dtaifm/dtaifm/actions/workflows/tests.yml/badge.svg)](https://github.com/dtaifm/dtaifm/actions/workflows/tests.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.4-blue.svg)](CHANGELOG.md)
-[![Tests passing](https://img.shields.io/badge/tests-327%20passing-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/version-0.1.5-blue.svg)](CHANGELOG.md)
+[![Tests passing](https://img.shields.io/badge/tests-328%20passing-brightgreen.svg)](tests/)
 
 **AI proposes. The deterministic layer disposes. AI output is an artifact, not an action.**
 
@@ -47,7 +47,7 @@ dtaifm demo smart_home
 
 That single command walks the entire pipeline — `propose → validate → execute → bundle → replay` — and prints a step-by-step report ending in `RESULT: PASSED`. Runs fully offline using the mock teacher; no API key needed.
 
-> **Alternate source install** — if you want to develop against the latest `main`, install from GitHub instead: `pip install git+https://github.com/dtaifm/dtaifm.git`. For pinned source installs, append the release tag you want (e.g. `@v0.1.4`).
+> **Alternate source install** — if you want to develop against the latest `main`, install from GitHub instead: `pip install git+https://github.com/dtaifm/dtaifm.git`. For pinned source installs, append the release tag you want (e.g. `@v0.1.5`).
 
 Want to see the second built-in domain or a local LLM driving it?
 
@@ -552,7 +552,7 @@ register_teacher("custom", CustomTeacher)
 # Install with dev tools (pytest, jsonschema, ruff, build, twine)
 pip install -e ".[dev]"
 
-# Run the test suite (327 tests, fully offline, no API keys)
+# Run the test suite (328 tests, fully offline, no API keys)
 pytest
 
 # Lint and format
@@ -564,7 +564,7 @@ python -m build --wheel
 
 # Smoke-test the wheel in a clean venv (also runs in CI)
 python -m venv /tmp/wheel-test
-/tmp/wheel-test/bin/pip install dist/dtaifm-0.1.4-py3-none-any.whl
+/tmp/wheel-test/bin/pip install dist/dtaifm-0.1.5-py3-none-any.whl
 /tmp/wheel-test/bin/dtaifm --help
 ```
 
