@@ -10,13 +10,25 @@
 
 **AI proposes. The deterministic layer disposes. AI output is an artifact, not an action.**
 
-dtaifm is open-source middleware for systems where AI generates candidate logic (rules, configurations, strategies) and a deterministic, constraint-verified layer has the final say. No AI output executes until it passes a human-defined constraint check. dtaifm names the two roles the **teacher** (the AI that proposes) and the **student** (the deterministic validator that approves, rejects, or asks for a revision).
+A raw LLM wired into your runtime is a liability: it hallucinates parameters, spirals inside agent loops, and can be steered by prompt injection into actions you never authorized. The usual defenses — sharper prompts, output filters — are themselves probabilistic, so they fail probabilistically.
+
+dtaifm takes a different stance: **the model is an advisor, never an executor.** It emits a static candidate artifact — a proposed rule, configuration, or workflow — and a rigid, human-written deterministic layer must validate and approve that artifact before anything touches your system. Violate a single hard constraint and the proposal is blocked. Your compliance rules, limits, and safety invariants live in code you control, not in a prompt you hope holds.
+
+dtaifm is open-source middleware that makes this split first-class. It names the two roles the **teacher** (the AI that proposes) and the **student** (the deterministic validator that approves, rejects, or asks for a revision). No AI output executes until it passes a human-defined constraint check.
 
 **Use it when** an AI — or any untrusted producer — proposes actions you can't let run unchecked:
 
 - Gate an **AI agent's tool calls**: allow read-only, reject out-of-scope, require human approval for writes/purchases/logins.
 - Validate **AI-proposed config, policy, or IAM changes** against hard constraints before they apply.
 - Ratify **LLM-generated rules or automations** before they execute — with a portable, replayable audit trail.
+
+**The shift, in one table:**
+
+| | Traditional agentic AI | dtaifm |
+|---|---|---|
+| AI's role | **Executor** — translates intent straight into tool/API calls | **Advisor** — proposes a candidate artifact, nothing more |
+| Safety control | **Reactive** — prompt engineering and output filters (probabilistic) | **Proactive** — hard-coded deterministic validators (predictable) |
+| Unapproved output | **Can execute** — hallucinated or injected actions reach the system | **Never executes** — blocked unless it clears every constraint |
 
 > **What dtaifm is not.** dtaifm is **not** a smart-home product or a network-automation product. `smart_home` and `network_automation` are domain packs that ship in the box to demonstrate the pattern. The framework itself is provider-agnostic (mock, Anthropic, OpenAI, Ollama, Lemonade, bring-your-own) and domain-agnostic (bring your own — see [`examples/custom_domain_template/`](examples/custom_domain_template/)).
 
@@ -67,7 +79,14 @@ For contributors: [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_
 
 ## Why
 
-Raw LLMs in production systems hallucinate. They are unpredictable at edge cases. Calling them on every user action is slow and expensive. dtaifm decouples the *intelligence* (the AI teacher) from the *execution* (the deterministic student) so you get AI-level optimization with deterministic-level safety and auditability.
+dtaifm decouples the *intelligence* (the AI teacher) from the *execution* (the deterministic student), so you get AI-level flexibility with deterministic-level safety and auditability. Concretely, that split buys you:
+
+- **Prompt-injection containment.** Even if a malicious prompt fully captures the model, the worst it can produce is a candidate artifact. The deterministic validator still has to approve it — and it refuses anything that breaks a hard constraint.
+- **Guaranteed compliance guardrails.** Regulatory limits, financial caps, and business rules are enforced in hard-coded validators, not coaxed out of a prompt. A proposal that violates one is blocked — predictably, every time.
+- **Safe rule and config generation.** Nothing the AI generates — routing tables, policies, data-transformation rules, lightweight scripts — reaches your runtime until it clears automated validation.
+- **Full auditability.** Because AI output is a static artifact, every propose → validate → execute cycle is traceable, replayable, and testable with ordinary software tooling (type checkers, schema validation, security scanners).
+
+Calling a raw LLM on every user action is also slow and expensive; treating it as a proposal engine lets you validate and reuse its output deterministically instead.
 
 ## Architecture
 
