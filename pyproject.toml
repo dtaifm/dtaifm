@@ -16,6 +16,12 @@ keywords = [
     "validation",
     "constraints",
     "llm",
+    "ai-safety",
+    "ai-agents",
+    "prompt-injection",
+    "guardrails",
+    "compliance",
+    "governance",
     "ollama",
     "anthropic",
     "openai",
@@ -36,6 +42,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Security",
     "Topic :: System :: Systems Administration",
 ]
 dependencies = [
