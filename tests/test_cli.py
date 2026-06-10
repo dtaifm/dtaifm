@@ -4,12 +4,27 @@ from pathlib import Path
 
 import pytest
 
+from dtaifm import __version__
 from dtaifm.cli import main
 
 
 EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "smart_rules"
 CONSTRAINTS = str(EXAMPLES / "constraints.yaml")
 RULES = str(EXAMPLES / "rules.yaml")
+
+
+# ----------------------------------------------------------------------
+# --version
+# ----------------------------------------------------------------------
+
+def test_version_flag_prints_version_and_exits_zero(capsys):
+    # argparse's version action raises SystemExit before the required-subcommand
+    # check, so `dtaifm --version` works without a subcommand.
+    with pytest.raises(SystemExit) as exc:
+        main(["--version"])
+    assert exc.value.code == 0
+    out = capsys.readouterr().out
+    assert out.strip() == f"dtaifm {__version__}"
 
 
 # ----------------------------------------------------------------------

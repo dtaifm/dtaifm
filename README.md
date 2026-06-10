@@ -159,7 +159,7 @@ dtaifm feedback constraints.yaml rules.yaml --out feedback.json
 dtaifm repropose constraints.yaml rules.yaml --teacher mock --out revised.yaml
 ```
 
-`--json` is available on `validate`, `run`, `review`, `replay`, and `inspect`. If the `dtaifm` entry point isn't on your PATH after install, use `python -m dtaifm ...` instead.
+`--json` is available on `validate`, `run`, `review`, `replay`, and `inspect`. `dtaifm --version` prints the installed version and exits. If the `dtaifm` entry point isn't on your PATH after install, use `python -m dtaifm ...` instead.
 
 ## Audit Bundles & Replay
 
@@ -549,7 +549,7 @@ register_teacher("custom", CustomTeacher)
 ## Developer commands
 
 ```bash
-# Install with dev tools (pytest, jsonschema, ruff, build)
+# Install with dev tools (pytest, jsonschema, ruff, build, twine)
 pip install -e ".[dev]"
 
 # Run the test suite (327 tests, fully offline, no API keys)
