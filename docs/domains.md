@@ -94,6 +94,34 @@ def escalation_requires_assignment(rule, constraint):
 
 Register it via the domain's `extra_constraint_evaluators` dict, keyed by the `type` string you'll use in constraints.yaml.
 
+## Evidence-aware guardrails (and what an evaluator can see)
+
+A custom evaluator receives exactly `(rule, constraint)` — and nothing else. It does **not** see the live system state, the proposal-time context, or any "evidence" the teacher reasoned over. It can only inspect the rule's own `trigger`, `conditions`, and `actions`, plus the constraint's `parameters`.
+
+That has one important consequence: **a guardrail can only act on evidence that is encoded into the rule.** To block an action when some signal holds in the world, the teacher must record that signal as a condition in the rule, and the evaluator checks it there.
+
+For example — "do not propose `auto_refund` when the order is flagged for review." The teacher records the evidence as a condition (here `evidence` is a condition type your domain declares in `condition_types`), and the evaluator cross-checks the action against it:
+
+```python
+def no_refund_when_flagged(rule, constraint):
+    actions = {a.action for a in rule.actions}
+    flagged = any(
+        c.type == "evidence" and c.parameters.get("signal") == "order_flagged"
+        for c in rule.conditions
+    )
+    if "auto_refund" in actions and flagged:
+        return ConstraintViolation(
+            constraint_id=constraint.id,
+            constraint_description=constraint.description,
+            reason=f"Rule '{rule.id}' proposes auto_refund while carrying order_flagged evidence.",
+        )
+    return None
+```
+
+Numeric thresholds work the same way — a "don't act on a tiny sample" guardrail reads a `sample_size` parameter off a condition and compares it.
+
+To force the teacher to *always* declare the evidence behind a proposal — so a guardrail can rely on it being present — pair this with a `metadata_requirement` constraint. Keeping evidence inside the rule is also what keeps `dtaifm replay` deterministic: the rule is a self-contained artifact that carries its own justification, with no hidden external inputs.
+
 ## Vocabulary enforcement
 
 The validator's domain-compatibility check produces a synthetic `__domain__` violation when a rule uses an out-of-vocabulary trigger event, condition type, or action verb. The runtime additionally refuses to execute any approved rule whose actions aren't in the active domain (defense-in-depth — useful if a rule somehow slipped past validation).
