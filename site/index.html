@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>dtaifm — AI proposes. The deterministic layer disposes.</title>
+<meta name="description" content="dtaifm is deterministic-first AI middleware: an LLM proposes a candidate artifact, and a rigid, human-written validator must approve it before anything runs. AI output is an artifact, not an action." />
+<meta name="theme-color" content="#0b0f14" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="dtaifm — AI proposes. The deterministic layer disposes." />
+<meta property="og:description" content="Deterministic-first AI middleware. The model is an advisor, never an executor: it proposes a candidate artifact, and your constraints decide. Nothing executes unapproved." />
+<meta property="og:url" content="https://dtaifm.github.io/dtaifm/" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0f14'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11' fill='none' stroke='%233fb950' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<style>
+  :root {
+    --bg: #0b0f14;
+    --bg-2: #0e141b;
+    --surface: #141b24;
+    --surface-2: #1a232e;
+    --border: #232f3c;
+    --text: #e6edf3;
+    --muted: #93a1b0;
+    --faint: #6b7986;
+    --accent: #3fb950;       /* approved / deterministic */
+    --accent-soft: rgba(63,185,80,.12);
+    --reject: #f85149;       /* rejected (demo only) */
+    --cyan: #56d4c4;
+    --radius: 12px;
+    --maxw: 1080px;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 14px;
+  }
+  h1, h2, h3 { line-height: 1.18; letter-spacing: -.02em; }
+  .muted { color: var(--muted); }
+
+  /* ---- nav ---- */
+  header.nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(11,15,20,.78);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-weight: 600; font-size: 16px; color: var(--text); }
+  .brand:hover { text-decoration: none; }
+  .brand .mark { width: 22px; height: 22px; display: block; }
+  .brand .ver { font-size: 11px; color: var(--faint); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; }
+  .nav-links { display: flex; gap: 22px; align-items: center; font-size: 14px; }
+  .nav-links a { color: var(--muted); }
+  .nav-links a:hover { color: var(--text); text-decoration: none; }
+  @media (max-width: 620px) { .nav-links a.hide-sm { display: none; } }
+
+  /* ---- buttons ---- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 600;
+    padding: 11px 18px; border-radius: 10px;
+    border: 1px solid var(--border);
+    color: var(--text); background: var(--surface);
+    cursor: pointer; transition: border-color .15s, background .15s, transform .05s;
+  }
+  .btn:hover { border-color: #36506a; text-decoration: none; }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { background: var(--accent); color: #07120a; border-color: var(--accent); }
+  .btn.primary:hover { background: #4cc85d; }
+
+  /* ---- hero ---- */
+  .hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--border); }
+  .hero::before {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(900px 380px at 18% -10%, rgba(63,185,80,.10), transparent 60%),
+      radial-gradient(700px 320px at 100% 0%, rgba(86,212,196,.07), transparent 55%);
+    pointer-events: none;
+  }
+  .hero-grid { position: relative; display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; padding: 76px 0 84px; }
+  @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; gap: 36px; padding: 56px 0 60px; } }
+  .hero h1 { font-size: clamp(34px, 5vw, 52px); margin: 0 0 20px; font-weight: 700; }
+  .hero h1 .g { color: var(--accent); }
+  .hero p.lede { font-size: 18px; color: var(--muted); margin: 0 0 28px; max-width: 36ch; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 26px; font-size: 13px; color: var(--faint); font-family: var(--mono); }
+  .pill-row span { display: inline-flex; align-items: center; gap: 7px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block; }
+
+  /* ---- terminal ---- */
+  .term {
+    background: #090d12; border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: 0 30px 70px -30px rgba(0,0,0,.8); overflow: hidden;
+  }
+  .term-bar { display: flex; align-items: center; gap: 7px; padding: 11px 14px; border-bottom: 1px solid var(--border); background: #0c1219; }
+  .term-bar i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+  .term-bar .t { margin-left: 10px; font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .term pre { margin: 0; padding: 18px 18px 22px; font-family: var(--mono); font-size: 13px; line-height: 1.7; overflow-x: auto; }
+  .term .prompt { color: var(--accent); }
+  .term .cmd { color: var(--text); }
+  .term .cmt { color: var(--faint); }
+  .term .ok { color: var(--accent); }
+  .term .no { color: var(--reject); }
+  .term .dim { color: var(--muted); }
+
+  /* ---- sections ---- */
+  section { padding: 76px 0; border-bottom: 1px solid var(--border); }
+  .sec-head { max-width: 60ch; margin-bottom: 44px; }
+  .sec-head h2 { font-size: clamp(26px, 3.4vw, 34px); margin: 0 0 14px; }
+  .sec-head p { color: var(--muted); font-size: 17px; margin: 0; }
+
+  /* ---- pipeline ---- */
+  .pipe { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 0; align-items: stretch; }
+  @media (max-width: 820px) { .pipe { grid-template-columns: 1fr; } .pipe .arrow { transform: rotate(90deg); justify-self: center; padding: 6px 0; } }
+  .node {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 18px; text-align: left;
+  }
+  .node .k { font-family: var(--mono); font-size: 12.5px; color: var(--accent); margin-bottom: 8px; }
+  .node .h { font-weight: 650; margin-bottom: 5px; font-size: 15px; }
+  .node .d { color: var(--muted); font-size: 13.5px; }
+  .node.det { border-color: #2a5a39; box-shadow: inset 0 0 0 1px rgba(63,185,80,.08); }
+  .arrow { display: flex; align-items: center; justify-content: center; color: var(--faint); padding: 0 14px; }
+  .boundary-note { margin-top: 22px; font-family: var(--mono); font-size: 12.5px; color: var(--faint); text-align: center; }
+  .boundary-note b { color: var(--accent); font-weight: 600; }
+
+  /* ---- cards grid ---- */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 20px; }
+  .card .ic { width: 30px; height: 30px; color: var(--accent); margin-bottom: 14px; }
+  .card h3 { font-size: 16px; margin: 0 0 8px; }
+  .card p { color: var(--muted); font-size: 14px; margin: 0; }
+
+  /* ---- compare ---- */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 720px) { .compare { grid-template-columns: 1fr; } }
+  .col { border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 22px; background: var(--surface); }
+  .col.us { border-color: #2a5a39; background: linear-gradient(180deg, var(--accent-soft), transparent 40%), var(--surface); }
+  .col .tag { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin-bottom: 16px; }
+  .col.us .tag { color: var(--accent); }
+  .col ul { list-style: none; margin: 0; padding: 0; }
+  .col li { display: flex; gap: 11px; padding: 9px 0; font-size: 14.5px; color: var(--muted); border-top: 1px solid var(--border); }
+  .col li:first-child { border-top: none; }
+  .col li svg { flex: 0 0 auto; margin-top: 3px; }
+  .col.us li { color: var(--text); }
+
+  /* ---- get started ---- */
+  .start-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 820px) { .start-grid { grid-template-columns: 1fr; } }
+  .codeblock { position: relative; background: #090d12; border: 1px solid var(--border); border-radius: var(--radius); }
+  .codeblock pre { margin: 0; padding: 18px 18px; font-family: var(--mono); font-size: 13px; line-height: 1.75; overflow-x: auto; }
+  .copy {
+    position: absolute; top: 10px; right: 10px;
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px;
+    padding: 5px 9px; cursor: pointer;
+  }
+  .copy:hover { color: var(--text); border-color: #36506a; }
+  .start-copy h3 { font-size: 20px; margin: 0 0 12px; }
+  .start-copy p { color: var(--muted); margin: 0 0 14px; }
+  .start-copy ul { color: var(--muted); padding-left: 18px; margin: 0; }
+  .start-copy li { margin: 6px 0; }
+
+  /* ---- footer ---- */
+  footer { padding: 50px 0 60px; }
+  .foot { display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; align-items: center; }
+  .foot .links { display: flex; flex-wrap: wrap; gap: 22px; font-size: 14px; }
+  .foot .links a { color: var(--muted); }
+  .foot .links a:hover { color: var(--text); text-decoration: none; }
+  .foot .meta { font-size: 13px; color: var(--faint); font-family: var(--mono); }
+  .note { margin-top: 22px; font-size: 12.5px; color: var(--faint); max-width: 70ch; }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#141b24" stroke="#232f3c"/><path d="M9 16.5l4.5 4.5L23 11" fill="none" stroke="#3fb950" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      dtaifm <span class="ver">v0.1.5</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#how" class="hide-sm">How it works</a>
+      <a href="#why" class="hide-sm">Why</a>
+      <a href="#start">Get started</a>
+      <a href="https://github.com/dtaifm/dtaifm">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<a id="top"></a>
+<section class="hero" style="border-bottom:1px solid var(--border);padding:0">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Deterministic-first AI middleware</p>
+      <h1>AI proposes.<br><span class="g">The deterministic layer disposes.</span></h1>
+      <p class="lede">dtaifm treats an LLM as an advisor, never an executor. The model emits a candidate artifact; a rigid, human-written validator must approve it before anything runs. AI output is an artifact, not an action.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="#start">Get started</a>
+        <a class="btn" href="https://github.com/dtaifm/dtaifm/blob/main/docs/quickstart.md">Documentation</a>
+        <a class="btn" href="https://pypi.org/project/dtaifm/">PyPI</a>
+      </div>
+      <div class="pill-row">
+        <span><i class="dot"></i> Python 3.11+</span>
+        <span><i class="dot"></i> MIT licensed</span>
+        <span><i class="dot"></i> Provider-agnostic</span>
+        <span><i class="dot"></i> Offline by default</span>
+      </div>
+    </div>
+
+    <div class="term" role="img" aria-label="Terminal showing dtaifm approving a safe rule and rejecting an unsafe one">
+      <div class="term-bar">
+        <i style="background:#f85149"></i><i style="background:#e3b341"></i><i style="background:#3fb950"></i>
+        <span class="t">dtaifm demo smart_home</span>
+      </div>
+<pre><span class="prompt">$</span> <span class="cmd">pip install dtaifm</span>
+<span class="prompt">$</span> <span class="cmd">dtaifm demo smart_home</span>
+
+<span class="cmt"># Validator reviews each proposed rule (deterministic)</span>
+<span class="ok">APPROVED</span>  [r_motion_night_light]  Motion-Activated Night Light
+<span class="no">REJECTED</span>  [r_auto_unlock_door]    Auto-Unlock on Arrival
+          <span class="no">!</span> <span class="dim">[no_auto_unlock] prohibited action 'unlock' on 'front_door'</span>
+<span class="ok">APPROVED</span>  [r_heating_cold]        Activate Heating When Cold
+
+<span class="cmt"># approved rules execute · audit bundle written · replay verified</span>
+<span class="ok">RESULT: PASSED</span>
+</pre>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">The trust boundary</p>
+      <h2>Three layers, one contract</h2>
+      <p>Humans define hard constraints. The AI teacher proposes candidate rules. A deterministic validator decides what is allowed — and only approved rules ever reach the runtime.</p>
+    </div>
+
+    <div class="pipe">
+      <div class="node">
+        <div class="k">def by humans</div>
+        <div class="h">Constraints</div>
+        <div class="d">Hard rules in YAML. Immutable at runtime, never written by AI.</div>
+      </div>
+      <div class="arrow" aria-hidden="true">
+        <svg width="26" height="16" viewBox="0 0 26 16" fill="none"><path d="M0 8h22M16 2l6 6-6 6" stroke="currentColor" stroke-width="1.6"/></svg>
+      </div>
+      <div class="node">
+        <div class="k">AI side · untrusted</div>
+        <div class="h">Teacher.propose()</div>
+        <div class="d">An LLM (or mock) returns a portable candidate RuleSet — an artifact, nothing more.</div>
+      </div>
+      <div class="arrow" aria-hidden="true">
+        <svg width="26" height="16" viewBox="0 0 26 16" fill="none"><path d="M0 8h22M16 2l6 6-6 6" stroke="currentColor" stroke-width="1.6"/></svg>
+      </div>
+      <div class="node det">
+        <div class="k">deterministic gate</div>
+        <div class="h">Validator → Runtime</div>
+        <div class="d">Approves or rejects each rule against the constraints. Only approved rules execute.</div>
+      </div>
+    </div>
+    <p class="boundary-note">▲ everything left of the gate is <b>a proposal</b> · everything right of it is <b>deterministic, auditable execution</b></p>
+  </div>
+</section>
+
+<!-- WHY -->
+<section id="why">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Why it matters</p>
+      <h2>Decouple the thinking from the doing</h2>
+      <p>A raw LLM in your runtime hallucinates parameters, spirals in agent loops, and can be steered by prompt injection. dtaifm puts a deterministic gate between the model and your system — so you get AI-level flexibility with deterministic-level safety.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.4 8-8 10-4.6-2-8-5-8-10V6l8-4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3>Prompt-injection containment</h3>
+        <p>Even if a malicious prompt fully captures the model, the worst it can emit is a candidate artifact. The validator still has to approve it — and refuses anything that breaks a hard constraint.</p>
+      </div>
+      <div class="card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <h3>Compliance guardrails</h3>
+        <p>Regulatory limits, financial caps, and business rules are enforced in hard-coded validators, not coaxed from a prompt. A proposal that violates one is blocked — predictably, every time.</p>
+      </div>
+      <div class="card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3>Safe rule &amp; config generation</h3>
+        <p>Nothing the AI generates — routing tables, policies, transformation rules, lightweight scripts — reaches your runtime until it clears automated validation.</p>
+      </div>
+      <div class="card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M6 3h9l5 5v13H6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 3v5h5M9 13l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3>Full auditability</h3>
+        <p>AI output is a static artifact, so every propose → validate → execute cycle is traceable, replayable, and verifiable with SHA-256-hashed audit bundles.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARE -->
+<section id="compare">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">The shift</p>
+      <h2>Advisor, not executor</h2>
+      <p>Traditional agentic AI lets the model act. dtaifm lets it only propose.</p>
+    </div>
+    <div class="compare">
+      <div class="col">
+        <div class="tag">Traditional agentic AI</div>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="#f85149" stroke-width="1.7" stroke-linecap="round"/></svg> Executor — translates intent straight into tool and API calls</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="#f85149" stroke-width="1.7" stroke-linecap="round"/></svg> Reactive — guarded by prompt engineering and output filters (probabilistic)</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="#f85149" stroke-width="1.7" stroke-linecap="round"/></svg> Hallucinated or injected actions can reach the system</li>
+        </ul>
+      </div>
+      <div class="col us">
+        <div class="tag">dtaifm</div>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 8.5l3 3 6-7" stroke="#3fb950" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Advisor — proposes a candidate artifact, nothing more</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 8.5l3 3 6-7" stroke="#3fb950" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Proactive — guarded by hard-coded deterministic validators (predictable)</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 8.5l3 3 6-7" stroke="#3fb950" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Unapproved output never executes — blocked unless it clears every constraint</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IN THE BOX -->
+<section id="box">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">In the box</p>
+      <h2>Batteries included, provider-agnostic</h2>
+      <p>A small, dependency-light core (just PyYAML) with optional adapters and example domain packs. Bring your own model and your own domain.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>5 teacher adapters</h3>
+        <p>mock, Anthropic, OpenAI, Ollama, and Lemonade — cloud or fully local, behind one provider-neutral contract. Every adapter is a translator, never a trusted component.</p>
+      </div>
+      <div class="card">
+        <h3>Domain packs</h3>
+        <p>Ships <span style="font-family:var(--mono);font-size:13px">smart_home</span> and <span style="font-family:var(--mono);font-size:13px">network_automation</span> to demonstrate the pattern. Define your own vocabulary and constraint evaluators.</p>
+      </div>
+      <div class="card">
+        <h3>Audit bundles &amp; replay</h3>
+        <p>Self-contained <span style="font-family:var(--mono);font-size:13px">.dtaifm-review.json</span> artifacts with canonical-JSON SHA-256 hashes. <span style="font-family:var(--mono);font-size:13px">dtaifm replay</span> re-verifies and catches tampering.</p>
+      </div>
+      <div class="card">
+        <h3>Versioned schemas</h3>
+        <p>Every file carries <span style="font-family:var(--mono);font-size:13px">schema_version</span> with published JSON Schemas, so producers and consumers can evolve independently.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GET STARTED -->
+<section id="start">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Get started</p>
+      <h2>One command, the whole pipeline</h2>
+      <p>The demo walks propose → validate → execute → bundle → replay and prints a step-by-step report. Runs fully offline with the mock teacher — no API key needed.</p>
+    </div>
+    <div class="start-grid">
+      <div class="codeblock">
+        <button class="copy" data-copy="pip install dtaifm&#10;dtaifm demo smart_home">Copy</button>
+<pre><span style="color:#6b7986"># install from PyPI</span>
+<span style="color:#3fb950">$</span> pip install dtaifm
+
+<span style="color:#6b7986"># run the full pipeline (offline)</span>
+<span style="color:#3fb950">$</span> dtaifm demo smart_home
+
+<span style="color:#6b7986"># try the second domain, or a local model</span>
+<span style="color:#3fb950">$</span> dtaifm demo network_automation
+<span style="color:#3fb950">$</span> dtaifm demo smart_home --teacher ollama --model llama3.2</pre>
+      </div>
+      <div class="start-copy">
+        <h3>Then explore</h3>
+        <p>The demo leaves the proposed rules, the audit bundle, and the hashes in a temp dir so you can inspect and replay them.</p>
+        <ul>
+          <li><a href="https://github.com/dtaifm/dtaifm/blob/main/docs/quickstart.md">Quickstart</a> — every CLI command, end to end</li>
+          <li><a href="https://github.com/dtaifm/dtaifm/blob/main/docs/concepts.md">Concepts</a> — the three layers and the trust boundary</li>
+          <li><a href="https://github.com/dtaifm/dtaifm/blob/main/docs/domains.md">Domains</a> — write your own domain pack</li>
+          <li><a href="https://github.com/dtaifm/dtaifm/blob/main/docs/audit-bundles.md">Audit bundles</a> — replay and tamper detection</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <a class="brand" href="#top">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#141b24" stroke="#232f3c"/><path d="M9 16.5l4.5 4.5L23 11" fill="none" stroke="#3fb950" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        dtaifm
+      </a>
+      <div class="links">
+        <a href="https://github.com/dtaifm/dtaifm">GitHub</a>
+        <a href="https://pypi.org/project/dtaifm/">PyPI</a>
+        <a href="https://github.com/dtaifm/dtaifm/tree/main/docs">Docs</a>
+        <a href="https://github.com/dtaifm/dtaifm/blob/main/CHANGELOG.md">Changelog</a>
+        <a href="https://github.com/dtaifm/dtaifm/blob/main/LICENSE">MIT License</a>
+      </div>
+    </div>
+    <p class="note">dtaifm is open-source middleware. The included <span style="font-family:var(--mono);font-size:12px">smart_home</span> and <span style="font-family:var(--mono);font-size:12px">network_automation</span> packs are demonstrations of the pattern, not products. The framework is provider- and domain-agnostic — bring your own.</p>
+    <p class="meta">Deterministic-first Teaching AI Framework Middleware</p>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.copy').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var text = b.getAttribute('data-copy').replace(/&#10;/g, '\n');
+      navigator.clipboard.writeText(text).then(function () {
+        var prev = b.textContent; b.textContent = 'Copied'; b.style.color = '#3fb950';
+        setTimeout(function () { b.textContent = prev; b.style.color = ''; }, 1400);
+      });
+    });
+  });
+</script>
+</body>
+</html>
