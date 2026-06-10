@@ -23,6 +23,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
+from dtaifm import __version__
 from dtaifm.audit import (
     format_execution_json,
     format_execution_text,
@@ -650,6 +651,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dtaifm",
         description="Deterministic-first Teaching AI Framework Middleware",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"dtaifm {__version__}",
+        help="Print the installed dtaifm version and exit.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 

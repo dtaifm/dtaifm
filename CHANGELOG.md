@@ -5,6 +5,14 @@ semantic versioning once it leaves alpha.
 
 ## [Unreleased]
 
+### Added
+
+- **`dtaifm --version`.** The top-level CLI now accepts `--version`, printing `dtaifm <version>` and exiting 0 — no subcommand required. Previously the installed version could only be read by importing `dtaifm.__version__` in Python.
+
+### Changed
+
+- **`twine` added to the `[dev]` extra.** Release tooling (`twine check` / `twine upload`) is now provisioned by `pip install -e ".[dev]"` instead of an ad-hoc install at release time.
+
 ## [0.1.4] — 2026-05-31
 
 Bugfix release. The teacher parser no longer rejects custom-domain condition types; the trust boundary is preserved (parser = shape/schema, validator = domain vocabulary). No rule-schema change.
