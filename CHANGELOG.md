@@ -5,6 +5,10 @@ semantic versioning once it leaves alpha.
 
 ## [Unreleased]
 
+## [0.1.6] — 2026-06-11
+
+Additive release: five generic policy constraint types. No trust-boundary, rule-schema, bundle, or replay change.
+
 ### Added
 
 - **Five generic policy constraint types** (#35) — `action_allowlist`, `action_denylist`, `requires`, `mutually_exclusive_actions`, and `parameter_threshold` — usable from any `constraints.yaml` with no custom evaluator code. They cover the guardrail shapes domain packs most often re-implement: allow/deny action vocabularies (optionally per device), companion action/condition requirements (the evidence-as-conditions pattern), action mutual exclusion, and numeric bounds. `parameter_threshold` is fail-closed: a matching action/condition whose bounded parameter is missing or non-numeric is rejected. Implemented in `dtaifm/student/generic_evaluators.py`; domain-registered evaluators still take priority, so a domain can override any of them. The constraints JSON Schema enum is widened accordingly (additive; `schema_version` unchanged at 0.1). No change to the rule schema, bundle format, or replay semantics.
