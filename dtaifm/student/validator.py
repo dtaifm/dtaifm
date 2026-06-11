@@ -5,6 +5,7 @@ from dtaifm.core.rule import Rule
 from dtaifm.core.ruleset import RuleSet
 from dtaifm.core.result import ConstraintViolation, ValidationResult, RuleSetValidationResult
 from dtaifm.domains.base import Domain
+from dtaifm.student.generic_evaluators import GENERIC_EVALUATORS
 
 
 class Validator:
@@ -100,6 +101,7 @@ class Validator:
             "temporal_restriction": self._check_temporal_restriction,
             "mode_override": self._check_mode_override,
             "metadata_requirement": self._check_metadata_requirement,
+            **GENERIC_EVALUATORS,
         }
         handler = builtin.get(constraint.type)
         if handler is None:
