@@ -332,6 +332,11 @@ AI proposes. The deterministic layer disposes.
 | `temporal_restriction` | A device may only be controlled via a trigger within a time window. |
 | `mode_override` | A named mode (e.g. `security`) supersedes comfort automation. |
 | `metadata_requirement` | Every rule must carry specified metadata fields. |
+| `action_allowlist` | Rule actions must all come from `allowed_actions` (optionally per-device via `applies_to`). |
+| `action_denylist` | No rule action may appear in `denied_actions` (optionally per-device via `applies_to`). |
+| `requires` | A rule performing `if_action` must also carry `requires_action` and/or a `requires_condition`. |
+| `mutually_exclusive_actions` | A single rule may not combine two or more of the listed `actions`. |
+| `parameter_threshold` | A numeric parameter on a matching action or condition must satisfy `min`/`max` (fail-closed if missing). |
 
 ## Defining Your Own Constraints
 

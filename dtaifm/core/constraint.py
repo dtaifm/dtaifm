@@ -17,6 +17,12 @@ class ConstraintType(str, Enum):
     TEMPORAL_RESTRICTION = "temporal_restriction"
     MODE_OVERRIDE = "mode_override"
     METADATA_REQUIREMENT = "metadata_requirement"
+    # Generic policy types (see dtaifm/student/generic_evaluators.py).
+    ACTION_ALLOWLIST = "action_allowlist"
+    ACTION_DENYLIST = "action_denylist"
+    REQUIRES = "requires"
+    MUTUALLY_EXCLUSIVE_ACTIONS = "mutually_exclusive_actions"
+    PARAMETER_THRESHOLD = "parameter_threshold"
 
 
 @dataclass

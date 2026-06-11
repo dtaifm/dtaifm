@@ -62,6 +62,11 @@ CONSTRAINTS_SCHEMA: dict = {
                             "temporal_restriction",
                             "mode_override",
                             "metadata_requirement",
+                            "action_allowlist",
+                            "action_denylist",
+                            "requires",
+                            "mutually_exclusive_actions",
+                            "parameter_threshold",
                         ]
                     },
                 },

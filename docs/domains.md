@@ -76,6 +76,38 @@ To make it visible to the CLI the domain must be registered before resolution. T
 
   `--domain-module` is accepted by every domain-resolving command (`validate`, `run`, `review`, `propose`, `prompt`, `feedback`, `repropose`, `demo`, and `replay`). A broken entry point is reported as a warning and skipped, never fatal.
 
+## Generic policy constraint types
+
+Before writing a custom evaluator, check whether one of the five generic constraint types already expresses your policy. They are domain-neutral framework built-ins — usable from any `constraints.yaml` with no code:
+
+```yaml
+constraints:
+  - id: read_only_mode
+    description: "Only non-mutating actions are allowed."
+    type: action_allowlist
+    allowed_actions: [notify, monitor, flag]
+
+  - id: no_score_tuning_on_thin_evidence
+    description: "Score tuning requires a minimum sample size."
+    type: parameter_threshold
+    action: tune_min_score
+    parameter: sample_size
+    min: 30
+
+  - id: pause_requires_evidence
+    description: "Pausing a source must cite the failing signal."
+    type: requires
+    if_action: pause_discovery
+    requires_condition: evidence
+```
+
+- **`action_allowlist`** / **`action_denylist`** — bound which action verbs rules may use, optionally per device via `applies_to`.
+- **`requires`** — a rule performing `if_action` must also carry `requires_action` and/or a condition of type `requires_condition` (optionally with matching `condition_parameters`). This is the evidence-as-conditions guardrail pattern below, with no custom code.
+- **`mutually_exclusive_actions`** — a single rule may not combine two or more of the listed `actions`.
+- **`parameter_threshold`** — a numeric parameter on a matching action (`action:`) or condition (`condition:`) must satisfy `min`/`max`. Fail-closed: a matching rule whose parameter is missing or non-numeric is rejected, so a rule cannot dodge a limit by omitting the value it is limited on.
+
+A domain can override any of these by registering an evaluator under the same type name — domain evaluators always take priority over built-ins.
+
 ## Custom constraint evaluators
 
 A custom evaluator is a function `(rule, constraint) -> ConstraintViolation | None`:
