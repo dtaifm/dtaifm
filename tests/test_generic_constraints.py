@@ -231,6 +231,49 @@ def test_threshold_without_bounds_is_noop():
     assert parameter_threshold(rule, c) is None
 
 
+def test_threshold_when_action_enforces_bound_on_matching_rule():
+    c = _make_constraint(
+        "downgrade_needs_streak", "parameter_threshold",
+        when_action="downgrade", condition="attestation", parameter="failure_streak", min=2,
+    )
+    rule = _make_rule(
+        [Action(device="d1", action="downgrade")],
+        [Condition(type="attestation", parameters={"failure_streak": 0})],
+    )
+    v = parameter_threshold(rule, c)
+    assert v is not None
+    assert "below the minimum 2" in v.reason
+
+
+def test_threshold_when_action_skips_rule_without_that_action():
+    c = _make_constraint(
+        "downgrade_needs_streak", "parameter_threshold",
+        when_action="downgrade", condition="attestation", parameter="failure_streak", min=2,
+    )
+    # Same condition, same low streak — but this rule only monitors, so the bound must not apply.
+    rule = _make_rule(
+        [Action(device="d1", action="monitor")],
+        [Condition(type="attestation", parameters={"failure_streak": 0})],
+    )
+    assert parameter_threshold(rule, c) is None
+
+
+def test_threshold_when_action_composes_with_action_target():
+    c = _make_constraint(
+        "big_transfer_needs_approval_amount", "parameter_threshold",
+        when_action="require_dual_approval", action="transfer", parameter="amount", max=1000,
+    )
+    # Rule performs the gating action, so the transfer amount bound applies.
+    rule = _make_rule([
+        Action(device="d1", action="require_dual_approval"),
+        Action(device="d1", action="transfer", parameters={"amount": 5000}),
+    ])
+    assert parameter_threshold(rule, c) is not None
+    # Without the gating action the bound is not applicable.
+    rule2 = _make_rule([Action(device="d1", action="transfer", parameters={"amount": 5000})])
+    assert parameter_threshold(rule2, c) is None
+
+
 # ----------------------------------------------------------------------
 # Validator dispatch
 # ----------------------------------------------------------------------

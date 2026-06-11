@@ -104,9 +104,30 @@ constraints:
 - **`action_allowlist`** / **`action_denylist`** — bound which action verbs rules may use, optionally per device via `applies_to`.
 - **`requires`** — a rule performing `if_action` must also carry `requires_action` and/or a condition of type `requires_condition` (optionally with matching `condition_parameters`). This is the evidence-as-conditions guardrail pattern below, with no custom code.
 - **`mutually_exclusive_actions`** — a single rule may not combine two or more of the listed `actions`.
-- **`parameter_threshold`** — a numeric parameter on a matching action (`action:`) or condition (`condition:`) must satisfy `min`/`max`. Fail-closed: a matching rule whose parameter is missing or non-numeric is rejected, so a rule cannot dodge a limit by omitting the value it is limited on.
+- **`parameter_threshold`** — a numeric parameter on a matching action (`action:`) or condition (`condition:`) must satisfy `min`/`max`. Fail-closed: a matching rule whose parameter is missing or non-numeric is rejected, so a rule cannot dodge a limit by omitting the value it is limited on. Optional `when_action:` makes the bound action-conditional — it only applies to rules whose action set includes that action kind:
+
+  ```yaml
+  - id: downgrade_needs_streak
+    description: "Downgrading discovery requires a failure streak of at least 2."
+    type: parameter_threshold
+    when_action: downgrade_to_no_discovery
+    condition: attestation
+    parameter: failure_streak
+    min: 2
+  ```
+
+  Other rules may carry the same `attestation` condition with a lower streak; the bound binds only the rules that perform the downgrade. (`requires` does not need a `when_action` — its `if_action` already provides exactly this scoping.)
 
 A domain can override any of these by registering an evaluator under the same type name — domain evaluators always take priority over built-ins.
+
+## Fail-closed governance metadata
+
+When a constraint or evaluator depends on governance state — an approval status, a staging flag, an evidence metric — treat the *absence* of that state as a rejection, never as the permissive default. Two rules of thumb:
+
+- **Producers emit explicitly.** A teacher, bridge, or attestation source must write `status: staged` / `status: approved` as a real value; it must never rely on a consumer defaulting a missing field.
+- **Validators reject absence.** An evaluator that reads governance metadata off a rule should return a violation when the field is missing or malformed, not skip the check.
+
+The framework's own `parameter_threshold` is the precedent: a bounded parameter that is missing or non-numeric is a violation, because a rule may not dodge a limit by omitting the value it is limited on. Apply the same posture to your custom evaluators — defaulting a missing `approved` flag to approved is how a gate silently stops gating.
 
 ## Custom constraint evaluators
 

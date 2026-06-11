@@ -110,6 +110,12 @@ def parameter_threshold(rule: Rule, constraint: Constraint) -> ConstraintViolati
     """A numeric parameter on a matching action (`action:`) or condition
     (`condition:`) must satisfy `min`/`max`.
 
+    Optional `when_action` makes the bound action-conditional: it only applies
+    to rules whose action set includes that action kind. This lets a bound on a
+    shared condition target only the rules that act on it (e.g. an escalation
+    action requiring a minimum failure streak, while other rules legitimately
+    carry the same condition with lower values).
+
     Fail-closed: when a bound is declared, a matching action/condition whose
     parameter is missing or non-numeric is rejected — a rule may not dodge a
     limit by omitting the value it is limited on.
@@ -117,9 +123,12 @@ def parameter_threshold(rule: Rule, constraint: Constraint) -> ConstraintViolati
     action_kind: str = constraint.parameters.get("action", "")
     condition_type: str = constraint.parameters.get("condition", "")
     parameter: str = constraint.parameters.get("parameter", "")
+    when_action: str = constraint.parameters.get("when_action", "")
     minimum = constraint.parameters.get("min")
     maximum = constraint.parameters.get("max")
     if not parameter or (minimum is None and maximum is None) or not (action_kind or condition_type):
+        return None
+    if when_action and when_action not in {a.action for a in rule.actions}:
         return None
     if action_kind:
         targets = [("action", a.action, a.parameters) for a in rule.actions if a.action == action_kind]

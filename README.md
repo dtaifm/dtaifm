@@ -336,7 +336,7 @@ AI proposes. The deterministic layer disposes.
 | `action_denylist` | No rule action may appear in `denied_actions` (optionally per-device via `applies_to`). |
 | `requires` | A rule performing `if_action` must also carry `requires_action` and/or a `requires_condition`. |
 | `mutually_exclusive_actions` | A single rule may not combine two or more of the listed `actions`. |
-| `parameter_threshold` | A numeric parameter on a matching action or condition must satisfy `min`/`max` (fail-closed if missing). |
+| `parameter_threshold` | A numeric parameter on a matching action or condition must satisfy `min`/`max` (fail-closed if missing); optional `when_action` scopes the bound to rules performing that action. |
 
 ## Defining Your Own Constraints
 
