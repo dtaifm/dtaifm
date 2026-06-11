@@ -5,6 +5,10 @@ semantic versioning once it leaves alpha.
 
 ## [Unreleased]
 
+## [0.1.7] — 2026-06-11
+
+Additive release from adopter field feedback on 0.1.6. No trust-boundary, rule-schema, bundle, or replay change.
+
 ### Added
 
 - **`when_action:` scope on `parameter_threshold`** (#38) — optional action-conditional bounds: the threshold only applies to rules whose action set includes the named action kind, so a bound on a shared condition binds only the rules that act on it. Backward-compatible (no behavior change when absent); requested from adopter field experience with 0.1.6's generic types. The equivalent extension on `requires` was explicitly declined — its `if_action` already provides that scoping.
