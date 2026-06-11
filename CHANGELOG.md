@@ -5,6 +5,14 @@ semantic versioning once it leaves alpha.
 
 ## [Unreleased]
 
+### Added
+
+- **`when_action:` scope on `parameter_threshold`** (#38) — optional action-conditional bounds: the threshold only applies to rules whose action set includes the named action kind, so a bound on a shared condition binds only the rules that act on it. Backward-compatible (no behavior change when absent); requested from adopter field experience with 0.1.6's generic types. The equivalent extension on `requires` was explicitly declined — its `if_action` already provides that scoping.
+
+### Docs
+
+- **Fail-closed governance metadata** guidance in `docs/domains.md`: producers emit governance state explicitly, validators reject absence; `parameter_threshold`'s fail-closed behavior is the in-framework precedent.
+
 ## [0.1.6] — 2026-06-11
 
 Additive release: five generic policy constraint types. No trust-boundary, rule-schema, bundle, or replay change.
